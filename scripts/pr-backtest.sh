@@ -13,6 +13,7 @@ COMMENT_BODY="${RESULT_DIR}/comment.md"
 EXTRA_CONFIGS="${FREQTRADE_EXTRA_CONFIGS:-}"
 
 mkdir -p "${RESULT_DIR}"
+chmod a+rwx "${RESULT_DIR}"
 
 python3 scripts/detect_changed_strategies.py \
   --base "${BASE_REF}" \

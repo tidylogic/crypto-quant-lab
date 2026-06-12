@@ -43,6 +43,9 @@ jobs:
       - name: Download historical data
         run: bash scripts/download-data.sh
 
+      - name: Normalize Freqtrade runtime permissions
+        run: sudo chmod -R a+rwX user_data
+
       - name: Run PR backtest
         run: bash scripts/pr-backtest.sh
 
