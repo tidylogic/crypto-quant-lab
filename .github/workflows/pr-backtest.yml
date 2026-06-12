@@ -22,6 +22,7 @@ jobs:
       BACKTEST_TIMEFRAME: ${{ vars.PR_BACKTEST_TIMEFRAME || '1m' }}
       BACKTEST_TIMEFRAMES: ${{ vars.PR_BACKTEST_TIMEFRAMES || '1m 5m 15m' }}
       FREQAI_MODEL: ${{ vars.PR_FREQAI_MODEL || 'LightGBMRegressor' }}
+      FREQTRADE_EXTRA_CONFIGS: /freqtrade/user_data/configs/config.ci.json
       PR_NUMBER: ${{ github.event.pull_request.number }}
     steps:
       - name: Checkout
@@ -34,6 +35,7 @@ jobs:
           cp user_data/configs/config.dryrun.example.json user_data/configs/config.dryrun.json
           cp user_data/configs/config.freqai.example.json user_data/configs/config.freqai.json
           cp user_data/configs/config.private.example.json user_data/configs/config.private.json
+          cp user_data/configs/config.ci.example.json user_data/configs/config.ci.json
 
       - name: Pull Freqtrade image
         run: docker compose pull freqtrade

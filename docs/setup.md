@@ -22,6 +22,8 @@ cp user_data/configs/config.private.example.json user_data/configs/config.privat
 
 Edit `user_data/configs/config.private.json` only for local secrets. Keep it out of git.
 
+`user_data/configs/config.ci.example.json` is only for GitHub-hosted PR backtests. It overrides the exchange to Binance US because hosted runner locations can be blocked by Binance.com even when local development works.
+
 ## 2. Pull The Freqtrade Image
 
 ```bash
@@ -35,6 +37,8 @@ This repo uses `freqtradeorg/freqtrade:stable_freqai` in `docker-compose.yml` be
 ```bash
 bash scripts/download-data.sh
 ```
+
+The script uses Freqtrade's `--prepend` option so reruns can fill older candles when a shorter local dataset already exists.
 
 Optional overrides:
 
@@ -76,11 +80,12 @@ The GitHub Actions workflow `.github/workflows/pr-backtest.yml` runs on strategy
 The workflow:
 
 1. Copies example configs to local ignored config files.
-2. Pulls the Freqtrade Docker image.
-3. Downloads data for the PR timerange.
-4. Detects changed strategies.
-5. Runs `freqtrade backtesting`.
-6. Creates or updates a PR comment.
+2. Appends `config.ci.json` as a CI-only exchange override.
+3. Pulls the Freqtrade Docker image.
+4. Downloads data for the PR timerange.
+5. Detects changed strategies.
+6. Runs `freqtrade backtesting`.
+7. Creates or updates a PR comment.
 
 Repository variables can tune runtime:
 
@@ -89,6 +94,7 @@ Repository variables can tune runtime:
 - `PR_BACKTEST_TIMEFRAME`
 - `PR_BACKTEST_TIMEFRAMES`
 - `PR_FREQAI_MODEL`
+- `FREQTRADE_EXTRA_CONFIGS`
 
 ## Safety
 

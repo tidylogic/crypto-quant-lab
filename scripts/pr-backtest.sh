@@ -10,6 +10,7 @@ RUN_ID="${GITHUB_RUN_ID:-local}"
 RESULT_DIR="${BACKTEST_RESULT_DIR:-user_data/backtest_results/pr-${RUN_ID}}"
 DETECTION_JSON="${RESULT_DIR}/detection.json"
 COMMENT_BODY="${RESULT_DIR}/comment.md"
+EXTRA_CONFIGS="${FREQTRADE_EXTRA_CONFIGS:-}"
 
 mkdir -p "${RESULT_DIR}"
 
@@ -37,12 +38,22 @@ if [[ -z "${STRATEGIES}" ]]; then
   exit 1
 fi
 
-COMMAND="docker compose run --rm freqtrade backtesting --config /freqtrade/user_data/configs/config.dryrun.json --config /freqtrade/user_data/configs/config.freqai.json --strategy-list ${STRATEGIES} --freqaimodel ${FREQAI_MODEL} --timerange ${TIMERANGE} --timeframe ${TIMEFRAME} --export trades --backtest-directory /freqtrade/${RESULT_DIR}"
+CONFIG_ARGS=(
+  --config /freqtrade/user_data/configs/config.dryrun.json
+  --config /freqtrade/user_data/configs/config.freqai.json
+)
+
+CONFIG_COMMAND="--config /freqtrade/user_data/configs/config.dryrun.json --config /freqtrade/user_data/configs/config.freqai.json"
+for config in ${EXTRA_CONFIGS}; do
+  CONFIG_ARGS+=(--config "${config}")
+  CONFIG_COMMAND="${CONFIG_COMMAND} --config ${config}"
+done
+
+COMMAND="docker compose run --rm freqtrade backtesting ${CONFIG_COMMAND} --strategy-list ${STRATEGIES} --freqaimodel ${FREQAI_MODEL} --timerange ${TIMERANGE} --timeframe ${TIMEFRAME} --export trades --backtest-directory /freqtrade/${RESULT_DIR}"
 
 echo "${COMMAND}"
 docker compose run --rm freqtrade backtesting \
-  --config /freqtrade/user_data/configs/config.dryrun.json \
-  --config /freqtrade/user_data/configs/config.freqai.json \
+  "${CONFIG_ARGS[@]}" \
   --strategy-list ${STRATEGIES} \
   --freqaimodel "${FREQAI_MODEL}" \
   --timerange "${TIMERANGE}" \

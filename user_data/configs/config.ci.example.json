@@ -1,0 +1,30 @@
+{
+  "$schema": "https://schema.freqtrade.io/schema.json",
+  "stake_currency": "USDT",
+  "fiat_display_currency": "USD",
+  "exchange": {
+    "name": "binanceus",
+    "key": "",
+    "secret": "",
+    "ccxt_config": {
+      "enableRateLimit": true
+    },
+    "ccxt_async_config": {
+      "enableRateLimit": true
+    },
+    "pair_whitelist": [
+      "BTC/USDT",
+      "ETH/USDT"
+    ],
+    "pair_blacklist": []
+  },
+  "freqai": {
+    "identifier": "scalping-freqai-ci-v1",
+    "feature_parameters": {
+      "include_corr_pairlist": [
+        "BTC/USDT",
+        "ETH/USDT"
+      ]
+    }
+  }
+}

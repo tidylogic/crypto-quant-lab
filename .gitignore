@@ -15,6 +15,7 @@ venv/
 # Freqtrade runtime state
 user_data/configs/config.dryrun.json
 user_data/configs/config.freqai.json
+user_data/configs/config.ci.json
 user_data/configs/config.private.json
 user_data/data/*
 !user_data/data/.gitkeep
