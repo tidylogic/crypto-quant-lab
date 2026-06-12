@@ -22,7 +22,7 @@ jobs:
       BACKTEST_TIMEFRAME: ${{ vars.PR_BACKTEST_TIMEFRAME || '1m' }}
       BACKTEST_TIMEFRAMES: ${{ vars.PR_BACKTEST_TIMEFRAMES || '1m 5m 15m' }}
       FREQAI_MODEL: ${{ vars.PR_FREQAI_MODEL || 'LightGBMRegressor' }}
-      FREQTRADE_EXTRA_CONFIGS: /freqtrade/user_data/configs/config.ci.json
+      FREQTRADE_EXTRA_CONFIGS: /freqtrade/user_data/configs/config.ci.json ${{ vars.PR_FREQTRADE_EXTRA_CONFIGS || '' }}
       PR_NUMBER: ${{ github.event.pull_request.number }}
     steps:
       - name: Checkout

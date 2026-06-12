@@ -23,6 +23,7 @@ def newest_result_file(results_dir: Path) -> Path | None:
         for path in results_dir.rglob("*")
         if path.is_file()
         and path.suffix.lower() in {".json", ".zip"}
+        and path.name.startswith("backtest-result")
         and not path.name.endswith(".meta.json")
     ]
     if not candidates:
@@ -52,6 +53,32 @@ def pick(mapping: dict, *names: str) -> Any:
     return "n/a"
 
 
+def format_count(value: Any) -> str:
+    if isinstance(value, int):
+        return str(value)
+    if isinstance(value, float) and value.is_integer():
+        return str(int(value))
+    return str(value)
+
+
+def format_number(value: Any, decimals: int = 3) -> str:
+    if isinstance(value, (int, float)):
+        return f"{value:.{decimals}f}"
+    return str(value)
+
+
+def format_ratio_percent(value: Any) -> str:
+    if isinstance(value, (int, float)):
+        return f"{value * 100:.2f}%"
+    return str(value)
+
+
+def format_plain_percent(value: Any) -> str:
+    if isinstance(value, (int, float)):
+        return f"{value:.2f}%"
+    return str(value)
+
+
 def strategy_payloads(result: Any) -> dict[str, dict]:
     if not isinstance(result, dict):
         return {}
@@ -72,17 +99,29 @@ def format_strategy_table(strategies: dict[str, dict]) -> str:
         "| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |",
     ]
     for name, data in strategies.items():
+        profit_ratio = pick(data, "profit_total", "total_profit")
+        profit_pct = (
+            format_plain_percent(pick(data, "profit_total_pct"))
+            if profit_ratio == "n/a"
+            else format_ratio_percent(profit_ratio)
+        )
+        drawdown_ratio = pick(data, "max_drawdown_account", "max_relative_drawdown")
+        drawdown_pct = (
+            format_plain_percent(pick(data, "max_drawdown_pct"))
+            if drawdown_ratio == "n/a"
+            else format_ratio_percent(drawdown_ratio)
+        )
         lines.append(
             "| {name} | {trades} | {profit_pct} | {profit_abs} | {drawdown} | {wins} | {draws} | {losses} | {pf} |".format(
                 name=name,
-                trades=pick(data, "total_trades", "trades"),
-                profit_pct=pick(data, "profit_total", "profit_total_pct", "total_profit"),
-                profit_abs=pick(data, "profit_total_abs", "profit_abs", "total_profit_abs"),
-                drawdown=pick(data, "max_drawdown_account", "max_drawdown", "max_drawdown_abs"),
-                wins=pick(data, "wins", "winning_trades"),
-                draws=pick(data, "draws", "draw_trades"),
-                losses=pick(data, "losses", "losing_trades"),
-                pf=pick(data, "profit_factor"),
+                trades=format_count(pick(data, "total_trades", "trades")),
+                profit_pct=profit_pct,
+                profit_abs=format_number(pick(data, "profit_total_abs", "profit_abs", "total_profit_abs")),
+                drawdown=drawdown_pct,
+                wins=format_count(pick(data, "wins", "winning_trades")),
+                draws=format_count(pick(data, "draws", "draw_trades")),
+                losses=format_count(pick(data, "losses", "losing_trades")),
+                pf=format_number(pick(data, "profit_factor"), decimals=2),
             )
         )
     return "\n".join(lines)
@@ -153,4 +192,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

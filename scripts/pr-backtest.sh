@@ -20,6 +20,20 @@ python3 scripts/detect_changed_strategies.py \
   --head "${HEAD_REF}" \
   --output "${DETECTION_JSON}"
 
+ERRORS="$(python3 -c "import json; print('\n'.join(json.load(open('${DETECTION_JSON}')).get('errors', [])))")"
+if [[ -n "${ERRORS}" ]]; then
+  {
+    printf '%s\n' '<!-- freqtrade-pr-backtest -->'
+    printf '%s\n\n' '## Freqtrade PR Backtest'
+    printf '%s\n\n' 'Changed strategy detection failed.'
+    while IFS= read -r error; do
+      printf -- '- `%s`\n' "${error}"
+    done <<< "${ERRORS}"
+  } > "${COMMENT_BODY}"
+  echo "${ERRORS}"
+  exit 1
+fi
+
 NEEDS_BACKTEST="$(python3 -c "import json; print(str(json.load(open('${DETECTION_JSON}'))['needs_backtest']).lower())")"
 
 if [[ "${NEEDS_BACKTEST}" != "true" ]]; then

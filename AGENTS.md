@@ -25,6 +25,7 @@
 
 ## Strategy Work
 
+- Use `.agents/skills/freqtrade-strategy-work` when creating or modifying strategies, FreqAI features, or strategy notes.
 - Keep strategy edits focused and hypothesis-driven.
 - Avoid committing exchange secrets or live trading credentials.
 - Do not treat backtest profit alone as proof of a good strategy. Always consider trade count, drawdown, fees, slippage, and overfitting risk.
