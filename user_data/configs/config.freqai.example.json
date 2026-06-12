@@ -1,0 +1,34 @@
+{
+  "freqai": {
+    "enabled": true,
+    "purge_old_models": 2,
+    "train_period_days": 30,
+    "backtest_period_days": 7,
+    "identifier": "scalping-freqai-v1",
+    "feature_parameters": {
+      "include_timeframes": [
+        "1m",
+        "5m",
+        "15m"
+      ],
+      "include_corr_pairlist": [
+        "BTC/USDT",
+        "ETH/USDT"
+      ],
+      "label_period_candles": 5,
+      "include_shifted_candles": 2,
+      "indicator_periods_candles": [
+        5,
+        10,
+        20
+      ],
+      "include_raw_data": false
+    },
+    "data_split_parameters": {
+      "test_size": 0.25,
+      "shuffle": false
+    },
+    "model_training_parameters": {}
+  }
+}
+

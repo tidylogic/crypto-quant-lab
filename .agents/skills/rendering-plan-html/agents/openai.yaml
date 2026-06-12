@@ -1,0 +1,4 @@
+interface:
+  display_name: "Render Plan HTML"
+  short_description: "Convert long implementation plans into readable HTML."
+  default_prompt: "Convert the latest implementation plan markdown into a readable HTML companion."
