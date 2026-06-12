@@ -15,7 +15,7 @@ Convert long implementation plans from Markdown to a standalone HTML file that i
 2. Run the bundled converter:
 
 ```bash
-python3 skills/rendering-plan-html/scripts/render_plan_html.py docs/superpowers/plans/example-plan.md
+python3 .agents/skills/rendering-plan-html/scripts/render_plan_html.py docs/superpowers/plans/example-plan.md
 ```
 
 3. Save the output next to the plan by default as `example-plan.html`.
@@ -42,4 +42,3 @@ For the expected HTML contract, read `references/html-output-contract.md` when c
 | Creating a custom HTML layout each time | Use the bundled script for consistent output. |
 | Treating HTML as source of truth | Edit the Markdown, then regenerate HTML. |
 | Dropping checkboxes or code fences | Verify the rendered summary and visually inspect unusual sections if needed. |
-

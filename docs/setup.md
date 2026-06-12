@@ -94,7 +94,7 @@ Repository variables can tune runtime:
 - `PR_BACKTEST_TIMEFRAME`
 - `PR_BACKTEST_TIMEFRAMES`
 - `PR_FREQAI_MODEL`
-- `FREQTRADE_EXTRA_CONFIGS`
+- `PR_FREQTRADE_EXTRA_CONFIGS`
 
 ## Safety
 

@@ -72,17 +72,29 @@ def detect(changed_files: list[str]) -> dict:
     watched_changes = [path for path in changed_files if path_is_watched(path)]
     changed_strategy_files = strategy_files_from_changes(changed_files)
     strategy_files = changed_strategy_files
+    errors: list[str] = []
 
     if watched_changes and not strategy_files:
         strategy_files = all_strategy_files()
 
     strategies: list[str] = []
     for file_name in strategy_files:
-        strategies.extend(strategy_classes(Path(file_name)))
+        path = Path(file_name)
+        classes = strategy_classes(path)
+        if file_name in changed_strategy_files:
+            if not path.exists():
+                errors.append(f"Changed strategy file does not exist: {file_name}")
+            elif not classes:
+                errors.append(f"No strategy class found in changed strategy file: {file_name}")
+        strategies.extend(classes)
+
+    if watched_changes and not changed_strategy_files and not strategies:
+        errors.append("No strategy classes found under user_data/strategies")
 
     return {
-        "needs_backtest": bool(watched_changes and strategies),
+        "needs_backtest": bool(watched_changes and strategies and not errors),
         "changed_files": changed_files,
+        "errors": errors,
         "watched_changes": watched_changes,
         "strategy_files": strategy_files,
         "strategies": sorted(set(strategies)),

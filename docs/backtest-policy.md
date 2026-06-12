@@ -29,9 +29,9 @@ Override these with GitHub repository variables:
 - `PR_BACKTEST_TIMEFRAME`
 - `PR_BACKTEST_TIMEFRAMES`
 - `PR_FREQAI_MODEL`
-- `FREQTRADE_EXTRA_CONFIGS`
+- `PR_FREQTRADE_EXTRA_CONFIGS`
 
-The default PR workflow appends `/freqtrade/user_data/configs/config.ci.json`. That CI override uses Binance US because GitHub-hosted runner locations can be blocked by Binance.com even when local development works.
+The default PR workflow appends `/freqtrade/user_data/configs/config.ci.json`. That CI override uses Binance US because GitHub-hosted runner locations can be blocked by Binance.com even when local development works. `PR_FREQTRADE_EXTRA_CONFIGS` can append additional config paths after the CI override.
 
 ## Required Review Questions
 
