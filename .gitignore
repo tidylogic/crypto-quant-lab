@@ -1,0 +1,35 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+
+# Local environment
+.env
+.env.*
+!.env.example
+
+# Freqtrade runtime state
+user_data/configs/config.dryrun.json
+user_data/configs/config.freqai.json
+user_data/configs/config.private.json
+user_data/data/*
+!user_data/data/.gitkeep
+user_data/logs/*
+!user_data/logs/.gitkeep
+user_data/models/*
+!user_data/models/.gitkeep
+user_data/backtest_results/*
+!user_data/backtest_results/.gitkeep
+user_data/hyperopt_results/*
+!user_data/hyperopt_results/.gitkeep
+user_data/plot/*
+!user_data/plot/.gitkeep
+user_data/trades*.sqlite*
+user_data/*.sqlite*
+
+# Notebooks
+.ipynb_checkpoints/

@@ -1,0 +1,12 @@
+{
+  "exchange": {
+    "key": "",
+    "secret": ""
+  },
+  "api_server": {
+    "username": "freqtrade",
+    "password": "change-me-change-me",
+    "jwt_secret_key": "change-me-change-me-change-me-change-me",
+    "ws_token": "change-me-change-me-change-me-change-me"
+  }
+}

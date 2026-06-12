@@ -1,0 +1,58 @@
+name: Freqtrade PR Backtest
+
+on:
+  pull_request:
+    paths:
+      - "user_data/strategies/**"
+      - "user_data/freqaimodels/**"
+      - "user_data/configs/**"
+      - "scripts/**"
+      - "docker-compose.yml"
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  backtest:
+    runs-on: ubuntu-latest
+    env:
+      DATA_TIMERANGE: ${{ vars.PR_DATA_TIMERANGE || '20250101-20250415' }}
+      BACKTEST_TIMERANGE: ${{ vars.PR_BACKTEST_TIMERANGE || '20250301-20250415' }}
+      BACKTEST_TIMEFRAME: ${{ vars.PR_BACKTEST_TIMEFRAME || '1m' }}
+      BACKTEST_TIMEFRAMES: ${{ vars.PR_BACKTEST_TIMEFRAMES || '1m 5m 15m' }}
+      FREQAI_MODEL: ${{ vars.PR_FREQAI_MODEL || 'LightGBMRegressor' }}
+      PR_NUMBER: ${{ github.event.pull_request.number }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Prepare configs
+        run: |
+          cp user_data/configs/config.dryrun.example.json user_data/configs/config.dryrun.json
+          cp user_data/configs/config.freqai.example.json user_data/configs/config.freqai.json
+          cp user_data/configs/config.private.example.json user_data/configs/config.private.json
+
+      - name: Pull Freqtrade image
+        run: docker compose pull freqtrade
+
+      - name: Download historical data
+        run: bash scripts/download-data.sh
+
+      - name: Run PR backtest
+        run: bash scripts/pr-backtest.sh
+
+      - name: Comment backtest result
+        if: always()
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          COMMENT_BODY="user_data/backtest_results/pr-${GITHUB_RUN_ID}/comment.md"
+          if [ -f "${COMMENT_BODY}" ]; then
+            python3 scripts/upsert-pr-comment.py --body "${COMMENT_BODY}"
+          else
+            printf '%s\n' '<!-- freqtrade-pr-backtest -->' '## Freqtrade PR Backtest' '' 'Backtest did not produce a comment body. Check workflow logs.' > /tmp/freqtrade-pr-backtest-comment.md
+            python3 scripts/upsert-pr-comment.py --body /tmp/freqtrade-pr-backtest-comment.md
+          fi
