@@ -30,18 +30,32 @@ SCOPED_STRATEGY_FILES = {
 
 GLOBAL_BACKTEST_FILES = {
     "docker-compose.yml",
-    "scripts/backtest.sh",
     "scripts/download-data.sh",
-    "scripts/pr-backtest.sh",
     "user_data/configs/config.ci.example.json",
     "user_data/configs/config.dryrun.example.json",
     "user_data/configs/config.freqai.example.json",
     "user_data/configs/config.private.example.json",
 }
 
+SCOPED_BACKTEST_SCRIPT_FILES = {
+    "scripts/backtest.sh",
+    "scripts/pr-backtest.sh",
+}
+
 GLOBAL_BACKTEST_PREFIXES = (
     "user_data/freqaimodels/",
 )
+
+STRATEGY_TIMEFRAMES = {
+    "BtcRankFreqaiStrategy": "5m",
+    "ScalpingFreqaiStrategy": "1m",
+}
+
+STRATEGY_EXTRA_CONFIGS = {
+    "BtcRankFreqaiStrategy": [
+        "/freqtrade/user_data/configs/config.btc-rank-freqai.json",
+    ],
+}
 
 
 def run_git_diff(base: str, head: str) -> list[str]:
@@ -79,6 +93,14 @@ def global_backtest_changes(changed_files: Iterable[str]) -> list[str]:
     ]
 
 
+def scoped_backtest_script_changes(changed_files: Iterable[str]) -> list[str]:
+    return [
+        path
+        for path in changed_files
+        if path in SCOPED_BACKTEST_SCRIPT_FILES
+    ]
+
+
 def strategy_classes(path: Path) -> list[str]:
     if not path.exists():
         return []
@@ -105,9 +127,27 @@ def all_strategy_files() -> list[str]:
     )
 
 
+def recommended_timeframe(strategies: Iterable[str]) -> str:
+    timeframes = {
+        STRATEGY_TIMEFRAMES.get(strategy, "1m")
+        for strategy in strategies
+    }
+    if len(timeframes) == 1:
+        return timeframes.pop()
+    return "1m"
+
+
+def recommended_extra_configs(strategies: Iterable[str]) -> list[str]:
+    unique_strategies = sorted(set(strategies))
+    if unique_strategies == ["BtcRankFreqaiStrategy"]:
+        return STRATEGY_EXTRA_CONFIGS["BtcRankFreqaiStrategy"]
+    return []
+
+
 def detect(changed_files: list[str]) -> dict:
     watched_changes = [path for path in changed_files if path_is_watched(path)]
     broad_changes = global_backtest_changes(changed_files)
+    scoped_script_changes = scoped_backtest_script_changes(changed_files)
     candidate_strategy_files = strategy_files_from_changes(changed_files)
     changed_strategy_files: list[str] = []
     mapped_helper_strategy_files: list[str] = []
@@ -129,6 +169,8 @@ def detect(changed_files: list[str]) -> dict:
     strategy_files = sorted(set(changed_strategy_files + mapped_helper_strategy_files))
     if broad_changes:
         strategy_files = all_strategy_files()
+    elif scoped_script_changes and not strategy_files:
+        strategy_files = all_strategy_files()
     elif watched_changes and not strategy_files:
         strategy_files = all_strategy_files()
     elif unmapped_helper_files:
@@ -148,13 +190,17 @@ def detect(changed_files: list[str]) -> dict:
     if watched_changes and not changed_strategy_files and not strategies:
         errors.append("No strategy classes found under user_data/strategies")
 
+    unique_strategies = sorted(set(strategies))
+
     return {
         "needs_backtest": bool(watched_changes and strategies and not errors),
         "changed_files": changed_files,
         "errors": errors,
         "watched_changes": watched_changes,
         "strategy_files": strategy_files,
-        "strategies": sorted(set(strategies)),
+        "strategies": unique_strategies,
+        "recommended_timeframe": recommended_timeframe(unique_strategies),
+        "recommended_extra_configs": recommended_extra_configs(unique_strategies),
     }
 
 
@@ -163,6 +209,10 @@ def write_github_output(path: Path, payload: dict) -> None:
     with path.open("a", encoding="utf-8") as handle:
         handle.write(f"needs_backtest={str(payload['needs_backtest']).lower()}\n")
         handle.write(f"strategies={strategies}\n")
+        handle.write(f"recommended_timeframe={payload['recommended_timeframe']}\n")
+        handle.write(
+            f"recommended_extra_configs={' '.join(payload['recommended_extra_configs'])}\n"
+        )
         handle.write("detection_json<<EOF\n")
         handle.write(json.dumps(payload, indent=2, sort_keys=True))
         handle.write("\nEOF\n")

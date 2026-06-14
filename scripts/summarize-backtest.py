@@ -187,6 +187,9 @@ def main() -> int:
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(build_comment(args), encoding="utf-8")
     print(f"Wrote PR comment body: {args.output}")
+    if newest_result_file(args.results_dir) is None:
+        print(f"No exported backtest result file was found in {args.results_dir}")
+        return 1
     return 0
 
 

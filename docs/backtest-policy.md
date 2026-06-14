@@ -20,7 +20,7 @@ Default PR settings:
 
 - Data timerange: `20250101-20250415`
 - Backtest timerange: `20250301-20250415`
-- Timeframe: `1m`
+- Timeframe: changed-strategy detection chooses the default unless `PR_BACKTEST_TIMEFRAME` is set. BTC-rank-only changes use that strategy's recommended `5m` source-runtime timeframe plus its FreqAI config overlay; mixed/global changes use the generic `1m` path.
 - FreqAI model: `LightGBMRegressor`
 - Result directory: `user_data/backtest_results/pr-<github-run-id>`
 
@@ -33,7 +33,7 @@ Override these with GitHub repository variables:
 - `PR_FREQAI_MODEL`
 - `PR_FREQTRADE_EXTRA_CONFIGS`
 
-The default PR workflow appends `/freqtrade/user_data/configs/config.ci.json`. That CI override uses Binance US because GitHub-hosted runner locations can be blocked by Binance.com even when local development works. `PR_FREQTRADE_EXTRA_CONFIGS` can append additional config paths after the CI override.
+The default PR workflow appends `/freqtrade/user_data/configs/config.ci.json`. That CI override uses Binance US because GitHub-hosted runner locations can be blocked by Binance.com even when local development works. `PR_FREQTRADE_EXTRA_CONFIGS` can append additional config paths after the CI override; strategy-specific overlays detected by `scripts/detect_changed_strategies.py` are appended after those configs.
 
 ## Required Review Questions
 
