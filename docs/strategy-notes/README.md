@@ -2,6 +2,8 @@
 
 Use this directory for strategy-specific design and review notes.
 
+For the full human workflow around strategy notes, implementation, backtesting, PR review, and dry-run, read [Strategy Workflow](../strategy-workflow.md).
+
 Suggested template:
 
 ```markdown
@@ -23,4 +25,3 @@ Suggested template:
 
 ## Decision
 ```
-

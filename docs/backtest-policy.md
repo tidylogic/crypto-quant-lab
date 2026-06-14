@@ -2,6 +2,8 @@
 
 Backtests are evidence, not proof. Use them to reject weak ideas quickly and to compare changes under repeatable assumptions.
 
+For where these checks fit in the full strategy cycle, read [Strategy Workflow](strategy-workflow.md).
+
 ## PR Backtests
 
 PR backtests are automatic, short-horizon checks for changed strategy work.
