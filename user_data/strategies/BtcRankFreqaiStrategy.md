@@ -9,6 +9,7 @@ Included:
 - TP-before-SL long/short target logic.
 - Single scalar FreqAI target compatible with the default `LightGBMRegressor`.
 - Rank-style long/short decision gate.
+- Source-like 5m signal horizon, KST blocked-hour filter, local trade gate, stake fraction, and leverage callbacks.
 - Original feature families: moving-average distance, RSI, volatility, volume ratio, order-block/FVG markers, long-range position, V3 chart-context features, and FreqAI-expanded multi-timeframe features.
 - Expected-value filter using fee/slippage assumptions.
 - Strategy adapter at `user_data/strategies/BtcRankFreqaiStrategy.py`.
@@ -32,7 +33,11 @@ The source bot loads trained XGBoost JSON models and calibrates predictions agai
 
 That difference is intentional for this repository. It keeps the strategy compatible with Freqtrade backtests, PR automation, and dry-run workflows, and avoids committing trained model artifacts.
 
-The source bot also used explicit 1m, 5m, 1h, and 1d context. The BTC-rank overlay sets FreqAI `include_timeframes` to those values so the model can train on expanded features from the same timeframes. The post-prediction decision gate only uses direct `%-rank-m5-*` and `%-rank-h1-*` columns if FreqAI returns those names on the strategy dataframe; otherwise it falls back to the migrated 1m V3 MA slope features. Treat this as a known behavior difference when comparing against the standalone bot.
+The source bot also used explicit 1m, 5m, 1h, and 1d context. FreqAI requires included timeframes to be greater than or equal to the strategy timeframe, so the BTC-rank overlay trains on 5m, 1h, and 1d expanded features. The post-prediction decision gate only uses direct `%-rank-m5-*` and `%-rank-h1-*` columns if FreqAI returns those names on the strategy dataframe; otherwise it falls back to migrated V3 MA slope features. Treat the missing 1m FreqAI expansion as a known behavior difference when comparing against the standalone bot.
+
+The strategy now uses a 5m base timeframe. This keeps `label_period_candles=8` aligned with the source bot's 5m `btc_historical_data.csv` target window, roughly 40 minutes. PR and manual backtest helpers recommend `5m` automatically when only `BtcRankFreqaiStrategy` is selected.
+
+The source local gate used a separate meta model. This migration does not import that model artifact; weak-meta and shock-meta checks are approximated with a Freqtrade-native safety score built from rank score, edge, and expected value.
 
 ## FreqAI Target Shape
 
@@ -83,10 +88,8 @@ Then use Freqtrade backtesting through the existing scripts or PR automation:
 cp user_data/configs/config.btc-rank-freqai.example.json user_data/configs/config.btc-rank-freqai.json
 STRATEGY=BtcRankFreqaiStrategy \
 FREQAI_MODEL=LightGBMRegressor \
-FREQTRADE_EXTRA_CONFIGS=/freqtrade/user_data/configs/config.btc-rank-freqai.json \
-BACKTEST_TIMEFRAMES="1m 5m 1h 1d" \
+BACKTEST_TIMEFRAMES="5m 1h 1d" \
 BACKTEST_TIMERANGE=20250301-20250415 \
-BACKTEST_TIMEFRAME=1m \
 bash scripts/backtest.sh
 ```
 
@@ -115,16 +118,19 @@ Prioritize:
 Start with these before changing model type:
 
 - `label_period_candles`: default `8`. Lower values make the scalp more immediate; higher values usually increase signal count but may lengthen trade duration.
-- `include_timeframes`: BTC-rank overlay default `1m`, `5m`, `1h`, `1d`. Keep downloaded data aligned with this list.
+- `include_timeframes`: BTC-rank overlay default `5m`, `1h`, `1d`. Keep downloaded data aligned with this list.
 - `minimal_roi["0"]`: default `0.0055`, matching the source TP.
 - `stoploss`: default `-0.0045`, matching the source SL.
-- `rank_window`: default `720`. Larger windows stabilize rank calibration; smaller windows adapt faster but overfit local regimes.
-- `rank_min_periods`: default `120`. Increasing it avoids early noisy entries.
+- `rank_window`: default `8000`, matching the source runtime's maximum calibration rows.
+- `rank_min_periods`: default `240`. Increasing it avoids early noisy entries.
 - `DecisionConfig.min_rank`: default `0.78`. Raise to reduce trades.
 - `DecisionConfig.long_min_rank`: default `0.84`. Raise if long entries are too frequent or weak.
 - `DecisionConfig.min_edge_rank`: default `0.03`. Raise to demand clearer long-vs-short separation.
 - `DecisionConfig.min_expected_value`: default `0.00030`. Raise when fees/slippage erase edge.
 - `DecisionConfig.long_min_trend`: default `-0.004`. Raise toward zero to avoid more counter-trend longs.
+- `LocalTradeGateConfig`: tune price chase, adverse drift, weak-volume/range, safety-score, and shock-regime rejection without changing the FreqAI target.
+- `position_fraction_min/max`: default `0.18`, matching the source forward-test position fraction.
+- `fixed_leverage`: default `100.0`; ignored in spot mode, used by Freqtrade futures mode.
 
 Tune one group at a time. After each change, compare trade count, drawdown, fees, and rejected signal reasons before looking at final profit.
 

@@ -1,12 +1,21 @@
 {
+  "timeframe": "5m",
+  "exchange": {
+    "pair_whitelist": [
+      "BTC/USDT"
+    ],
+    "pair_blacklist": []
+  },
   "freqai": {
-    "identifier": "btc-rank-freqai-v1",
+    "identifier": "btc-rank-freqai-runtime-v2",
     "feature_parameters": {
       "include_timeframes": [
-        "1m",
         "5m",
         "1h",
         "1d"
+      ],
+      "include_corr_pairlist": [
+        "BTC/USDT"
       ],
       "label_period_candles": 8,
       "indicator_periods_candles": [

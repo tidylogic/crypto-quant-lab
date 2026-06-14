@@ -24,6 +24,17 @@ helpers = load_helpers()
 
 
 class BtcRankFreqaiHelperTests(unittest.TestCase):
+    def test_helper_loads_when_importlib_loader_does_not_register_module(self) -> None:
+        path = ROOT / "user_data/strategies/btc_rank_freqai_helpers.py"
+        spec = importlib.util.spec_from_file_location("freqtrade_loader_probe", path)
+        if spec is None or spec.loader is None:
+            raise RuntimeError(f"Unable to import {path}")
+        module = importlib.util.module_from_spec(spec)
+
+        spec.loader.exec_module(module)
+
+        self.assertTrue(hasattr(module, "decide_rank_signal"))
+
     def test_scalping_targets_label_tp_before_sl_by_side(self) -> None:
         long_target, short_target = helpers.create_scalping_targets_from_ohlc(
             close=[100.0, 100.0, 100.0, 100.0],
@@ -119,6 +130,118 @@ class BtcRankFreqaiHelperTests(unittest.TestCase):
         )
 
         self.assertEqual(ranks, [1.0, 0.5, 2 / 3, 2 / 3])
+
+    def test_local_gate_blocks_chasing_after_signal_candle(self) -> None:
+        decision = helpers.DecisionResult(
+            signal="long",
+            reason="rank_entry_candidate",
+            score=0.80,
+            expected_value=0.001,
+            effective_win_prob=0.70,
+            confidence=0.93,
+            edge_rank=0.16,
+            regime="normal",
+            side_rank=0.93,
+            other_rank=0.77,
+        )
+
+        gate = helpers.evaluate_local_trade_gate(
+            row={},
+            decision=decision,
+            current_price=100.20,
+            signal_price=100.00,
+            config=helpers.LocalTradeGateConfig(max_chase_pct=0.0015),
+        )
+
+        self.assertFalse(gate.allow)
+        self.assertEqual(gate.reason, "local_gate_price_chase")
+
+    def test_local_gate_blocks_low_volume_when_edge_is_weak(self) -> None:
+        decision = helpers.DecisionResult(
+            signal="short",
+            reason="rank_entry_candidate",
+            score=0.70,
+            expected_value=0.0008,
+            effective_win_prob=0.66,
+            confidence=0.82,
+            edge_rank=0.04,
+            regime="normal",
+            side_rank=0.82,
+            other_rank=0.78,
+        )
+
+        gate = helpers.evaluate_local_trade_gate(
+            row={"%-rank-m5-volume-ratio": 0.50},
+            decision=decision,
+            current_price=99.95,
+            signal_price=100.00,
+            config=helpers.LocalTradeGateConfig(
+                min_volume_ratio=0.65,
+                low_volume_min_edge=0.10,
+            ),
+        )
+
+        self.assertFalse(gate.allow)
+        self.assertEqual(gate.reason, "local_gate_low_volume_weak_edge")
+
+    def test_local_gate_blocks_weak_safety_candidate_from_decision_gate(self) -> None:
+        row = {
+            "%-rank-volatility": 0.002,
+            "%-rank-m5-volume-ratio": 1.2,
+        }
+        decision = helpers.decide_rank_signal(
+            row,
+            long_prob=0.02,
+            short_prob=0.04,
+            long_rank=0.76,
+            short_rank=0.82,
+            config=helpers.DecisionConfig(),
+        )
+
+        self.assertEqual(decision.signal, "short")
+
+        gate = helpers.evaluate_local_trade_gate(
+            row=row,
+            decision=decision,
+            current_price=100.00,
+            signal_price=100.00,
+            config=helpers.LocalTradeGateConfig(),
+        )
+
+        self.assertFalse(gate.allow)
+        self.assertEqual(gate.reason, "local_gate_weak_safety_edge")
+
+    def test_local_gate_blocks_low_safety_shock_candidate(self) -> None:
+        decision = helpers.DecisionResult(
+            signal="long",
+            reason="rank_entry_candidate",
+            score=0.64,
+            expected_value=0.0005,
+            effective_win_prob=0.66,
+            confidence=0.70,
+            edge_rank=0.10,
+            regime="shock",
+            side_rank=0.70,
+            other_rank=0.60,
+        )
+
+        gate = helpers.evaluate_local_trade_gate(
+            row={"%-rank-volatility": 0.007, "%-rank-m5-volume-ratio": 1.1},
+            decision=decision,
+            current_price=100.00,
+            signal_price=100.00,
+            config=helpers.LocalTradeGateConfig(),
+        )
+
+        self.assertFalse(gate.allow)
+        self.assertEqual(gate.reason, "local_gate_shock_safety_low")
+
+    def test_runtime_sizing_matches_source_defaults(self) -> None:
+        self.assertEqual(helpers.position_fraction(0.91, fixed_leverage=100.0), 0.18)
+        self.assertEqual(
+            helpers.dynamic_leverage(0.91, 0.09, min_leverage=1.0, max_leverage=100.0),
+            2.0,
+        )
 
 
 if __name__ == "__main__":

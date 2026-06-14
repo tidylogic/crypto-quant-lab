@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import math
-from dataclasses import dataclass
 from typing import Any, Optional, Sequence
 
 
@@ -183,35 +182,142 @@ def rolling_percentile_rank_values(
     return ranks
 
 
-@dataclass(frozen=True)
 class DecisionConfig:
-    min_rank: float = 0.78
-    min_edge_rank: float = 0.03
-    min_raw_prob: float = 0.02
-    min_score: float = 0.61
-    min_expected_value: float = 0.00030
-    long_min_rank: float = 0.84
-    long_min_score: float = 0.62
-    long_min_expected_value: float = 0.00035
-    long_min_trend: float = -0.00400
-    take_profit_pct: float = 0.0055
-    stop_loss_pct: float = 0.0045
-    taker_fee_rate: float = 0.0004
-    slippage_rate: float = 0.0002
+    def __init__(
+        self,
+        min_rank: float = 0.78,
+        min_edge_rank: float = 0.03,
+        min_raw_prob: float = 0.02,
+        min_score: float = 0.61,
+        min_expected_value: float = 0.00030,
+        long_min_rank: float = 0.84,
+        long_min_score: float = 0.62,
+        long_min_expected_value: float = 0.00035,
+        long_min_trend: float = -0.00400,
+        take_profit_pct: float = 0.0055,
+        stop_loss_pct: float = 0.0045,
+        taker_fee_rate: float = 0.0004,
+        slippage_rate: float = 0.0002,
+    ) -> None:
+        self.min_rank = min_rank
+        self.min_edge_rank = min_edge_rank
+        self.min_raw_prob = min_raw_prob
+        self.min_score = min_score
+        self.min_expected_value = min_expected_value
+        self.long_min_rank = long_min_rank
+        self.long_min_score = long_min_score
+        self.long_min_expected_value = long_min_expected_value
+        self.long_min_trend = long_min_trend
+        self.take_profit_pct = take_profit_pct
+        self.stop_loss_pct = stop_loss_pct
+        self.taker_fee_rate = taker_fee_rate
+        self.slippage_rate = slippage_rate
 
 
-@dataclass(frozen=True)
 class DecisionResult:
-    signal: str
-    reason: str
-    score: float
-    expected_value: float
-    effective_win_prob: float
-    confidence: float
-    edge_rank: float
-    regime: str
-    side_rank: float
-    other_rank: float
+    def __init__(
+        self,
+        signal: str,
+        reason: str,
+        score: float,
+        expected_value: float,
+        effective_win_prob: float,
+        confidence: float,
+        edge_rank: float,
+        regime: str,
+        side_rank: float,
+        other_rank: float,
+    ) -> None:
+        self.signal = signal
+        self.reason = reason
+        self.score = score
+        self.expected_value = expected_value
+        self.effective_win_prob = effective_win_prob
+        self.confidence = confidence
+        self.edge_rank = edge_rank
+        self.regime = regime
+        self.side_rank = side_rank
+        self.other_rank = other_rank
+
+
+class LocalTradeGateConfig:
+    def __init__(
+        self,
+        enabled: bool = True,
+        max_chase_pct: float = 0.0015,
+        max_adverse_drift_pct: float = 0.0012,
+        min_volume_ratio: float = 0.65,
+        low_volume_min_edge: float = 0.10,
+        dead_range_min_edge: float = 0.10,
+        quiet_range_min_edge: float = 0.07,
+        shock_min_score: float = 0.64,
+        shock_min_expected_value: float = 0.00045,
+        shock_min_edge: float = 0.06,
+        shock_min_safety_score: float = 0.62,
+        min_side_trend: float = -9.0,
+        counter_body_pct: float = 9.0,
+        weak_safety_min_edge: float = 0.10,
+        weak_safety_threshold: float = 0.62,
+    ) -> None:
+        self.enabled = enabled
+        self.max_chase_pct = max_chase_pct
+        self.max_adverse_drift_pct = max_adverse_drift_pct
+        self.min_volume_ratio = min_volume_ratio
+        self.low_volume_min_edge = low_volume_min_edge
+        self.dead_range_min_edge = dead_range_min_edge
+        self.quiet_range_min_edge = quiet_range_min_edge
+        self.shock_min_score = shock_min_score
+        self.shock_min_expected_value = shock_min_expected_value
+        self.shock_min_edge = shock_min_edge
+        self.shock_min_safety_score = shock_min_safety_score
+        self.min_side_trend = min_side_trend
+        self.counter_body_pct = counter_body_pct
+        self.weak_safety_min_edge = weak_safety_min_edge
+        self.weak_safety_threshold = weak_safety_threshold
+
+
+class LocalTradeGateResult:
+    def __init__(
+        self,
+        allow: bool,
+        reason: str,
+        risk_level: str = "unknown",
+        score: float = 0.0,
+        checked: bool = True,
+    ) -> None:
+        self.allow = allow
+        self.reason = reason
+        self.risk_level = risk_level
+        self.score = score
+        self.checked = checked
+
+
+def _gate_skipped(reason: str) -> LocalTradeGateResult:
+    return LocalTradeGateResult(
+        allow=True,
+        reason=reason,
+        risk_level="none",
+        score=1.0,
+        checked=False,
+    )
+
+
+def _gate_blocked(reason: str, risk_level: str, score: float) -> LocalTradeGateResult:
+    return LocalTradeGateResult(
+        allow=False,
+        reason=reason,
+        risk_level=risk_level,
+        score=clamp(score, 0.0, 1.0),
+    )
+
+
+def _gate_allowed(score: float) -> LocalTradeGateResult:
+    return LocalTradeGateResult(
+        allow=True,
+        reason="local_gate_allow",
+        risk_level="low",
+        score=clamp(score, 0.0, 1.0),
+    )
 
 
 def classify_regime(row: Any) -> tuple[str, float]:
@@ -276,6 +382,139 @@ def expected_value(win_prob: float, config: DecisionConfig) -> float:
     reward = max(0.0, config.take_profit_pct - roundtrip_cost)
     risk = config.stop_loss_pct + roundtrip_cost
     return (win_prob * reward) - ((1.0 - win_prob) * risk)
+
+
+def signed_body(row: Any, side: str) -> float:
+    open_price = row_value(row, "open")
+    close_price = row_value(row, "close")
+    if open_price <= 0:
+        return 0.0
+    body = (close_price - open_price) / open_price
+    return body if side == "long" else -body
+
+
+def side_drift(current_price: float, signal_price: float, side: str) -> float:
+    if signal_price <= 0:
+        return 0.0
+    drift = (current_price - signal_price) / signal_price
+    return drift if side == "long" else -drift
+
+
+def evaluate_local_trade_gate(
+    row: Any,
+    decision: Optional[DecisionResult],
+    current_price: float,
+    signal_price: float,
+    config: Optional[LocalTradeGateConfig] = None,
+) -> LocalTradeGateResult:
+    config = config or LocalTradeGateConfig()
+    if not config.enabled:
+        return _gate_skipped("local_gate_disabled")
+    if decision is None or decision.signal == "none":
+        return _gate_skipped("no_entry_candidate")
+
+    side = decision.signal
+    trend = side_trend_strength(row, side)
+    volume_ratio = row_value(
+        row,
+        "%-rank-m5-volume-ratio",
+        "%-rank-volume-ratio",
+        "m5_volume_ratio",
+        "volume_ratio",
+        default=1.0,
+    )
+    drift = side_drift(current_price, signal_price, side)
+    body = signed_body(row, side)
+
+    quality_score = (
+        (decision.score * 0.42)
+        + (decision.confidence * 0.24)
+        + (0.60 * 0.16)
+        + (min(0.20, max(0.0, decision.edge_rank)) * 0.70)
+        + (min(0.003, max(0.0, decision.expected_value)) * 20.0)
+    )
+
+    if drift > config.max_chase_pct:
+        return _gate_blocked("local_gate_price_chase", "high", quality_score)
+    if drift < -config.max_adverse_drift_pct:
+        return _gate_blocked("local_gate_price_adverse_drift", "high", quality_score)
+    if decision.regime == "dead_range" and decision.edge_rank < config.dead_range_min_edge:
+        return _gate_blocked("local_gate_dead_range_weak_edge", "medium", quality_score)
+    if decision.regime == "quiet_range" and decision.edge_rank < config.quiet_range_min_edge:
+        return _gate_blocked("local_gate_quiet_range_weak_edge", "medium", quality_score)
+    if volume_ratio < config.min_volume_ratio and decision.edge_rank < config.low_volume_min_edge:
+        return _gate_blocked("local_gate_low_volume_weak_edge", "medium", quality_score)
+    if trend < config.min_side_trend:
+        return _gate_blocked("local_gate_trend_against_side", "medium", quality_score)
+    if body < -config.counter_body_pct and decision.edge_rank < config.weak_safety_min_edge:
+        return _gate_blocked("local_gate_counter_candle", "medium", quality_score)
+    if (
+        decision.edge_rank < config.weak_safety_min_edge
+        and quality_score < config.weak_safety_threshold
+    ):
+        return _gate_blocked("local_gate_weak_safety_edge", "medium", quality_score)
+
+    if decision.regime == "shock":
+        if quality_score < config.shock_min_safety_score:
+            return _gate_blocked("local_gate_shock_safety_low", "high", quality_score)
+        if decision.score < config.shock_min_score:
+            return _gate_blocked("local_gate_shock_score_low", "high", quality_score)
+        if decision.expected_value < config.shock_min_expected_value:
+            return _gate_blocked("local_gate_shock_ev_low", "high", quality_score)
+        if decision.edge_rank < config.shock_min_edge:
+            return _gate_blocked("local_gate_shock_edge_low", "high", quality_score)
+
+    return _gate_allowed(quality_score)
+
+
+def position_fraction(
+    confidence: float,
+    fixed_leverage: float,
+    min_fraction: float = 0.18,
+    max_fraction: float = 0.18,
+) -> float:
+    if fixed_leverage >= 100:
+        return max_fraction
+
+    if confidence >= 0.97:
+        fraction = 0.45
+    elif confidence >= 0.94:
+        fraction = 0.32
+    elif confidence >= 0.90:
+        fraction = 0.22
+    else:
+        fraction = 0.14
+
+    return clamp(fraction, min_fraction, max_fraction)
+
+
+def dynamic_leverage(
+    confidence: float,
+    edge_rank: float,
+    min_leverage: float,
+    max_leverage: float,
+    fixed_leverage: float = 0.0,
+    direction_only: bool = False,
+) -> float:
+    if direction_only or fixed_leverage > 0:
+        return clamp(fixed_leverage or 1.0, min_leverage, max_leverage)
+
+    if confidence >= 0.995 and edge_rank >= 0.24:
+        leverage = 25.0
+    elif confidence >= 0.990 and edge_rank >= 0.20:
+        leverage = 15.0
+    elif confidence >= 0.985 and edge_rank >= 0.18:
+        leverage = 10.0
+    elif confidence >= 0.97 and edge_rank >= 0.14:
+        leverage = 5.0
+    elif confidence >= 0.94 and edge_rank >= 0.10:
+        leverage = 3.0
+    elif confidence >= 0.90 and edge_rank >= 0.08:
+        leverage = 2.0
+    else:
+        leverage = 1.0
+
+    return clamp(leverage, min_leverage, max_leverage)
 
 
 def decide_rank_signal(
