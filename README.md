@@ -17,6 +17,7 @@ Freqtrade-based crypto quant research lab for rule-based scalping strategies and
 │   ├── backtest-policy.md
 │   ├── freqtrade-references.md
 │   ├── setup.md
+│   ├── strategy-workflow.md
 │   ├── research/
 │   └── strategy-notes/
 ├── scripts/
@@ -47,7 +48,7 @@ Freqtrade-based crypto quant research lab for rule-based scalping strategies and
 
 ## Setup
 
-Read [docs/setup.md](docs/setup.md) for the full environment setup.
+Read [docs/strategy-workflow.md](docs/strategy-workflow.md) for the end-to-end human workflow, and [docs/setup.md](docs/setup.md) for the full environment setup.
 
 Quick start:
 
@@ -61,6 +62,8 @@ bash scripts/backtest.sh
 ```
 
 ## Research Workflow
+
+For the full step-by-step process, use [docs/strategy-workflow.md](docs/strategy-workflow.md).
 
 1. Write the strategy hypothesis in `docs/strategy-notes/`.
 2. Implement strategy code in `user_data/strategies`.

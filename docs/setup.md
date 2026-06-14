@@ -2,6 +2,8 @@
 
 This project uses Freqtrade through Docker Compose.
 
+For the full human workflow from environment setup to strategy PR review, read [Strategy Workflow](strategy-workflow.md).
+
 ## Prerequisites
 
 - Docker with the Compose plugin.
