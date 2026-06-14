@@ -32,3 +32,6 @@ user_data/*.sqlite*
 
 # Notebooks
 .ipynb_checkpoints/
+
+# Local worktrees
+.worktrees/

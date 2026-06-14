@@ -1,0 +1,20 @@
+{
+  "freqai": {
+    "identifier": "btc-rank-freqai-v1",
+    "feature_parameters": {
+      "include_timeframes": [
+        "1m",
+        "5m",
+        "1h",
+        "1d"
+      ],
+      "label_period_candles": 8,
+      "indicator_periods_candles": [
+        5,
+        10,
+        20,
+        48
+      ]
+    }
+  }
+}

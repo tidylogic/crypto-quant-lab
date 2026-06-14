@@ -99,6 +99,38 @@ class DetectChangedStrategiesTests(unittest.TestCase):
         self.assertTrue(payload["needs_backtest"])
         self.assertEqual(payload["errors"], [])
         self.assertIn("ScalpingFreqaiStrategy", payload["strategies"])
+        self.assertIn("BtcRankFreqaiStrategy", payload["strategies"])
+
+    def test_strategy_helper_change_falls_back_to_existing_strategy(self) -> None:
+        payload = detect_changed_strategies.detect(
+            ["user_data/strategies/btc_rank_freqai_helpers.py"]
+        )
+
+        self.assertTrue(payload["needs_backtest"])
+        self.assertEqual(payload["errors"], [])
+        self.assertEqual(payload["strategies"], ["BtcRankFreqaiStrategy"])
+
+    def test_global_config_change_with_scoped_helper_backtests_all_strategies(self) -> None:
+        payload = detect_changed_strategies.detect(
+            [
+                "user_data/strategies/btc_rank_freqai_helpers.py",
+                "user_data/configs/config.freqai.example.json",
+            ]
+        )
+
+        self.assertTrue(payload["needs_backtest"])
+        self.assertEqual(payload["errors"], [])
+        self.assertIn("BtcRankFreqaiStrategy", payload["strategies"])
+        self.assertIn("ScalpingFreqaiStrategy", payload["strategies"])
+
+    def test_btc_rank_config_change_backtests_only_btc_rank_strategy(self) -> None:
+        payload = detect_changed_strategies.detect(
+            ["user_data/configs/config.btc-rank-freqai.example.json"]
+        )
+
+        self.assertTrue(payload["needs_backtest"])
+        self.assertEqual(payload["errors"], [])
+        self.assertEqual(payload["strategies"], ["BtcRankFreqaiStrategy"])
 
 
 if __name__ == "__main__":

@@ -19,6 +19,30 @@ WATCHED_PREFIXES = (
     "docker-compose.yml",
 )
 
+SCOPED_STRATEGY_FILES = {
+    "user_data/strategies/btc_rank_freqai_helpers.py": [
+        "user_data/strategies/BtcRankFreqaiStrategy.py"
+    ],
+    "user_data/configs/config.btc-rank-freqai.example.json": [
+        "user_data/strategies/BtcRankFreqaiStrategy.py"
+    ],
+}
+
+GLOBAL_BACKTEST_FILES = {
+    "docker-compose.yml",
+    "scripts/backtest.sh",
+    "scripts/download-data.sh",
+    "scripts/pr-backtest.sh",
+    "user_data/configs/config.ci.example.json",
+    "user_data/configs/config.dryrun.example.json",
+    "user_data/configs/config.freqai.example.json",
+    "user_data/configs/config.private.example.json",
+}
+
+GLOBAL_BACKTEST_PREFIXES = (
+    "user_data/freqaimodels/",
+)
+
 
 def run_git_diff(base: str, head: str) -> list[str]:
     result = subprocess.run(
@@ -46,6 +70,15 @@ def strategy_files_from_changes(changed_files: Iterable[str]) -> list[str]:
     )
 
 
+def global_backtest_changes(changed_files: Iterable[str]) -> list[str]:
+    return [
+        path
+        for path in changed_files
+        if path in GLOBAL_BACKTEST_FILES
+        or any(path.startswith(prefix) for prefix in GLOBAL_BACKTEST_PREFIXES)
+    ]
+
+
 def strategy_classes(path: Path) -> list[str]:
     if not path.exists():
         return []
@@ -65,17 +98,41 @@ def strategy_classes(path: Path) -> list[str]:
 
 
 def all_strategy_files() -> list[str]:
-    return sorted(str(path) for path in Path("user_data/strategies").glob("*.py"))
+    return sorted(
+        str(path)
+        for path in Path("user_data/strategies").glob("*.py")
+        if strategy_classes(path)
+    )
 
 
 def detect(changed_files: list[str]) -> dict:
     watched_changes = [path for path in changed_files if path_is_watched(path)]
-    changed_strategy_files = strategy_files_from_changes(changed_files)
-    strategy_files = changed_strategy_files
+    broad_changes = global_backtest_changes(changed_files)
+    candidate_strategy_files = strategy_files_from_changes(changed_files)
+    changed_strategy_files: list[str] = []
+    mapped_helper_strategy_files: list[str] = []
+    unmapped_helper_files: list[str] = []
     errors: list[str] = []
 
-    if watched_changes and not strategy_files:
+    for file_name in changed_files:
+        mapped_helper_strategy_files.extend(SCOPED_STRATEGY_FILES.get(file_name, []))
+
+    for file_name in candidate_strategy_files:
+        path = Path(file_name)
+        if not path.exists() or strategy_classes(path):
+            changed_strategy_files.append(file_name)
+        elif file_name in SCOPED_STRATEGY_FILES:
+            continue
+        else:
+            unmapped_helper_files.append(file_name)
+
+    strategy_files = sorted(set(changed_strategy_files + mapped_helper_strategy_files))
+    if broad_changes:
         strategy_files = all_strategy_files()
+    elif watched_changes and not strategy_files:
+        strategy_files = all_strategy_files()
+    elif unmapped_helper_files:
+        strategy_files = sorted(set(strategy_files + all_strategy_files()))
 
     strategies: list[str] = []
     for file_name in strategy_files:
