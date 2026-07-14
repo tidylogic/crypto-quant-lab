@@ -13,7 +13,7 @@ Before strategy edits, read `AGENTS.md`, `docs/architecture.md`, `docs/backtest-
 
 ## Idea contract
 
-Request only the missing required fields. Do not infer a missing trading rule or proceed to code while one is missing.
+Request clarification for every missing, ambiguous, or conflicting required field. Do not infer a trading rule or proceed to code until every required rule is executable.
 
 ```markdown
 ## Strategy idea
@@ -56,6 +56,8 @@ Treat these as hard ceilings, not tunable parameters:
 
 Do not alter these limits to make a backtest profitable. Map them to the current Freqtrade strategy/configuration capabilities after verifying the installed version and official local references. Keep entry sizing, maximum position adjustments, concurrent-trade controls, and runtime protections consistent with the profile. Never add a position once its declared invalidation condition has occurred.
 
+When collecting clarification, restate every numeric limit in this table; do not substitute or omit one.
+
 ## Experiment workflow
 
 1. Restate the complete contract, hypothesis, assumptions, and risk profile. Obtain approval if the user changed any rule after supplying the template.
@@ -68,6 +70,8 @@ Do not alter these limits to make a backtest profitable. Map them to the current
 ## Decision and report
 
 Report the exact dates, pairs, timeframe, configuration assumptions, fees/slippage/funding assumptions, return, trade count, win rate, profit factor, maximum drawdown, maximum exposure, average duration, and development-versus-evaluation results. Call out fill assumptions, sparse samples, regime concentration, and any unavailable bias check.
+
+Reject an acceptance backtest with maximum drawdown above 5%, regardless of profit.
 
 Select exactly one decision:
 
