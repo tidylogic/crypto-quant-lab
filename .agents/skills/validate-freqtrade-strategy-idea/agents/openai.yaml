@@ -1,0 +1,4 @@
+interface:
+  display_name: "Validate Freqtrade Strategy Idea"
+  short_description: "Turn trading ideas into bounded Freqtrade experiments."
+  default_prompt: "Use $validate-freqtrade-strategy-idea to turn my trading idea into a bounded Freqtrade backtest experiment."
