@@ -1,35 +1,46 @@
-# Trading Experiment Template Library
+# 트레이딩 실험 템플릿 라이브러리
 
-Use these templates to turn an algorithmic-trading idea into a bounded, auditable experiment. They help compare defined hypotheses; they do not authorize a search for the most profitable parameters.
+이 템플릿으로 알고리즘 트레이딩 아이디어를 범위가 제한되고 감사 가능한 실험으로 전환합니다. 정의된 가설을 비교하기 위한 것이며, 가장 수익성 높은 파라미터를 탐색하도록 허용하지 않습니다.
 
-## Workflow
+## 사용자 정의 프리셋 카드 추가
 
-1. Complete the [strategy idea template](strategy-idea-template.md) and [market-regime template](market-regime-template.md). An absent, ambiguous, or conflicting rule means **do not trade** until it is resolved.
-2. Choose at most two IDs from each layer in the [risk-management preset catalog](risk-management-presets.md): stop, profit-taking, and scale-in.
-3. Pre-register the allowed values and enumerate no more than eight total combinations. Do not add combinations after viewing evaluation-period results.
-4. Use development data only to narrow candidates. Evaluate survivors once on a later, untouched period with the [evaluation template](backtest-evaluation-template.md).
-5. Record every result and rejection in the [experiment log](experiment-log-template.md).
+다음 명령으로 공용 라이브러리에 한국어 프리셋 카드 초안을 생성합니다.
 
-## Non-negotiable account limits
+```bash
+bash .agents/scripts/create-risk-preset.sh <PRESET-ID>
+# .agents/templates/trading-experiments/risk-presets/<PRESET-ID>.md
+```
 
-| Control | Fixed limit | Effect |
+ID는 `STOP-`, `TP-`, `SCALE-` 중 하나로 시작해야 합니다. 생성된 카드는 초안이며, 모든 필수 항목을 채우고 검토한 뒤에만 선택 후보로 사용합니다.
+
+## 절차
+
+1. [전략 아이디어 템플릿](strategy-idea-template.md)과 [시장 국면 템플릿](market-regime-template.md)을 작성합니다. 규칙이 누락되었거나, 모호하거나, 서로 충돌하면 해결될 때까지 **거래하지 않습니다**.
+2. [리스크 관리 프리셋 카탈로그](risk-management-presets.md)의 각 레이어(손절, 이익 실현, 추가 진입)에서 ID를 최대 두 개 선택합니다.
+3. 허용값을 사전 등록하고 전체 조합을 최대 여덟 개까지 열거합니다. 평가 기간 결과를 본 뒤 조합을 추가하지 않습니다.
+4. 개발 데이터는 후보 압축에만 사용합니다. 생존 후보는 이후의 미사용 기간에서 [평가 템플릿](backtest-evaluation-template.md)으로 한 번 평가합니다.
+5. 모든 결과와 거절을 [실험 로그](experiment-log-template.md)에 기록합니다.
+
+## 변경 불가 계좌 한도
+
+| 통제 항목 | 고정 한도 | 효과 |
 | --- | ---: | --- |
-| Initial entry allocation | 5% of total account equity | Each entry order is capped at 5%. |
-| Entries per trade | 3; 15% total account equity | No fourth entry or total trade allocation above 15%. |
-| Concurrent positions | 2; 30% total account equity | Reject new entries once either concurrent-position or aggregate-allocation ceiling is reached. |
-| Strategy drawdown breaker | 5% | Stop the strategy and investigate before any new allocation. |
-| Daily-loss breaker | 30% | Stop opening positions for the rest of the day. |
+| 최초 진입 배분 | 전체 계좌 자산의 5% | 각 진입 주문은 5%로 제한됩니다. |
+| 거래당 진입 횟수 | 3회; 전체 계좌 자산의 15% | 네 번째 진입 또는 거래당 총 배분 15% 초과는 금지됩니다. |
+| 동시 보유 포지션 | 2개; 전체 계좌 자산의 30% | 동시 포지션 또는 총 배분 한도 중 하나에 도달하면 신규 진입을 거절합니다. |
+| 전략 드로다운 차단기 | 5% | 새 배분 전에 전략을 중지하고 조사합니다. |
+| 일일 손실 차단기 | 30% | 해당 일의 남은 시간 동안 신규 포지션 개설을 중지합니다. |
 
-These ceilings remain fixed for every preset and every test. A preset can only make exposure smaller or exits earlier; it cannot relax a ceiling.
+이 상한은 모든 프리셋과 모든 테스트에서 고정됩니다. 프리셋은 노출을 더 작게 하거나 청산을 더 이르게 할 수만 있으며, 상한을 완화할 수 없습니다.
 
-## Candidate selection and decision gates
+## 후보 선택 및 결정 게이트
 
-| Condition | Decision |
+| 조건 | 결정 |
 | --- | --- |
-| Idea, regime, order trigger, exit, or invalidation is missing, ambiguous, or contradictory | Reject before backtest. |
-| More than two IDs selected in any layer, or more than eight combinations | Reject the experiment definition. |
-| Any candidate breaches an account limit or has acceptance/evaluation backtest max drawdown above **5%** | Reject, regardless of profit. |
-| Evaluation trade count is below the pre-declared minimum | Reject as insufficient evidence. |
-| Candidate passes all gates | Only after applying the account limits and 5% drawdown hard gate first, rank untouched evaluation survivors by expectancy, profit factor, and sufficient trade count. |
+| 아이디어, 국면, 주문 트리거, 청산 또는 무효화가 누락되었거나 모호하거나 충돌함 | 백테스트 전에 거절합니다. |
+| 어느 레이어에서든 ID를 두 개 초과로 선택했거나 조합이 여덟 개 초과 | 실험 정의를 거절합니다. |
+| 어떤 후보든 계좌 한도를 위반하거나 승인/평가 백테스트 최대 드로다운이 **5% 초과** | 수익과 무관하게 거절합니다. |
+| 평가 거래 수가 사전 선언한 최소치 미만 | 증거 불충분으로 거절합니다. |
+| 후보가 모든 게이트 통과 | 먼저 계좌 한도와 5% 드로다운 하드 게이트를 적용한 뒤, 미사용 평가 생존자를 기대값, 수익 계수, 충분한 사전 선언 거래 수로 순위를 매깁니다. |
 
-Win rate and net return are secondary observations; they never override the gates or the primary ranking criteria.
+승률과 순수익률은 보조 관찰값이며, 게이트나 주 순위 기준을 절대 대체하지 않습니다.

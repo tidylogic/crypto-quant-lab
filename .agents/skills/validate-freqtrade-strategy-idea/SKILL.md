@@ -3,93 +3,100 @@ name: validate-freqtrade-strategy-idea
 description: Use when a user wants to turn an algorithmic trading idea into a Freqtrade strategy, backtest it, or judge whether the hypothesis has enough evidence in this repository.
 ---
 
-# Validate Freqtrade Strategy Idea
+# Freqtrade 전략 아이디어 검증
 
-Turn a trading idea into a reproducible experiment, not a promise of live profitability. A profitable backtest is evidence to inspect; it is never proof.
+트레이딩 아이디어를 수익성 약속이 아닌 재현 가능한 실험으로 전환합니다. 수익성 있는 백테스트는 조사할 증거일 뿐, 결코 증명은 아닙니다.
 
-## Required context
+## 필수 컨텍스트
 
-Before strategy edits, read `AGENTS.md`, `docs/architecture.md`, `docs/backtest-policy.md`, and `docs/strategy-workflow.md`. **REQUIRED SUB-SKILL:** Use `freqtrade-strategy-work` for strategy, FreqAI, and strategy-note changes.
+전략을 수정하기 전에 `AGENTS.md`, `docs/architecture.md`, `docs/backtest-policy.md`, `docs/strategy-workflow.md`를 읽습니다. **필수 하위 스킬:** 전략, FreqAI, 전략 노트 작업에는 `freqtrade-strategy-work`를 사용합니다.
 
-## Idea contract
+## 아이디어 계약
 
-Request clarification for every missing, ambiguous, or conflicting required field. Do not infer a trading rule or proceed to code until every required rule is executable.
+필수 필드가 누락되었거나 모호하거나 충돌할 때마다 명확화를 요청합니다. 모든 필수 규칙을 실행 가능하게 만들기 전에는 트레이딩 규칙을 추론하거나 코드 작업을 진행하지 않습니다.
 
 ```markdown
-## Strategy idea
+## 전략 아이디어
 
-- **Hypothesis:** Why should this setup have an edge?
-- **Market scope:** Exchange; spot/futures; pairs; long/short; base timeframe.
-- **Initial entry:** Exact inputs and boolean trigger, including when it is evaluated.
-- **Scale-ins:** None, averaging down, or pyramiding. For entries 2 and 3: trigger and prohibition.
-- **Invalidation / stop:** Exact price, indicator, or time condition for closing the trade.
-- **Profit-taking:** Target risk/reward or exit condition; each partial-exit proportion; final-exit rule.
-- **No-trade conditions:** Filters that block entry, or `none`.
-- **Backtest scope:** Historical date range and pairs.
-- **Reusable presets:** `none`, or the selected stop, profit-taking, and scale-in preset IDs.
+- **가설:** 이 설정에 엣지가 있어야 하는 이유는 무엇인가?
+- **시장 범위:** 거래소; 현물/선물; 페어; 롱/숏; 기본 시간대.
+- **최초 진입:** 평가 시점을 포함한 정확한 입력값과 불리언 트리거.
+- **추가 진입:** 없음, 평균 단가 낮추기 또는 단계적 추가 진입. 진입 2와 3의 트리거 및 금지 조건.
+- **무효화 / 손절:** 거래를 청산할 정확한 가격, 지표 또는 시간 조건.
+- **이익 실현:** 목표 위험 대비 보상 또는 청산 조건; 각 부분 청산 비율; 최종 청산 규칙.
+- **거래 금지 조건:** 진입을 막는 필터 또는 없음.
+- **백테스트 범위:** 과거 날짜 범위와 페어.
+- **재사용 프리셋:** 없음, 또는 선택한 손절, 이익 실현 및 추가 진입 프리셋 ID.
 
-## Optional context
+## 선택 컨텍스트
 
-- **Leverage / margin / maximum holding time:**
-- **Fee, slippage, and funding assumptions:**
-- **Session, news, liquidity, or volume filters:**
-- **Baseline and minimum trade-count target:**
-- **Parameters permitted for exploration, with ranges:**
-- **References:** Pine script, chart, or existing strategy.
+- **레버리지 / 마진 / 최대 보유 시간:**
+- **수수료, 슬리피지 및 펀딩 가정:**
+- **세션, 뉴스, 유동성 또는 거래량 필터:**
+- **기준선 및 최소 거래 수 목표:**
+- **탐색이 허용된 파라미터와 범위:**
+- **참조 자료:** Pine script, 차트 또는 기존 전략.
 ```
 
-If an optional item is absent, use the relevant repository configuration where possible and name the assumption in the final report. If the evaluation range or meaningful trade count is absent, complete the experiment if otherwise possible but never return `candidate`; return `needs more validation`.
+선택 항목이 없으면 가능한 경우 관련 리포지토리 설정을 사용하고, 최종 보고서에 가정을 명시합니다. 평가 범위 또는 의미 있는 거래 수가 없으면 다른 조건상 실험을 완료할 수 있더라도 절대 후보를 반환하지 않고 추가 검증 필요를 반환합니다.
 
-## Reusable trading-experiment presets
+## 재사용 가능한 트레이딩 실험 프리셋
 
-When reusable presets are selected, first read `.agents/templates/trading-experiments/template-index.md` and use its linked templates. The strategy idea must name every selected stop, profit-taking, and scale-in ID; an absent, ambiguous, conflicting, or unknown ID fails the complete-contract gate.
+재사용 프리셋을 선택하면 먼저 `.agents/templates/trading-experiments/template-index.md`와 연결된 템플릿을 읽습니다. 사용자 정의 프리셋은 다음 명령으로 카드 초안을 생성합니다.
 
-- Select no more than two IDs per layer: stop, profit-taking, and scale-in.
-- Pre-register allowed values and enumerate no more than eight total combinations before viewing the untouched evaluation period. Do not add or change a combination after viewing evaluation results.
-- Complete the evaluation record and log each result and rejection using the library templates.
-- Apply its rejection protocol before ranking: reject any hard-gate failure, including any acceptance or evaluation maximum drawdown above 5%, regardless of profit.
-- Rank only untouched-evaluation survivors by expectancy, profit factor, and sufficient pre-declared trade count. Treat win rate and net return as secondary observations; do not introduce undefined risk-adjusted metrics.
+```bash
+bash .agents/scripts/create-risk-preset.sh <PRESET-ID>
+# .agents/templates/trading-experiments/risk-presets/<PRESET-ID>.md
+```
 
-The preset library can only make exposure smaller or exits earlier; it cannot relax the risk profile below.
+사용자 정의 ID는 `STOP-`, `TP-`, `SCALE-` 중 하나로 시작해야 합니다. 카드는 모든 필드를 채우고 상태를 `검토 완료`로 바꾸기 전까지 선택할 수 없습니다. 전략 아이디어에는 선택한 모든 손절, 이익 실현 및 추가 진입 ID가 명시되어야 합니다. 사용자 정의 ID는 `risk-presets/<ID>.md` 카드가 존재하고 모든 필수 필드가 채워져 있으며 상태가 `검토 완료`여야 합니다. ID가 없거나, 모호하거나, 충돌하거나, 알 수 없으면 완전 계약 게이트에서 실패합니다.
 
-## Immutable conservative risk profile
+- 레이어별(손절, 이익 실현, 추가 진입) ID를 두 개 초과로 선택하지 않습니다.
+- 미사용 평가 기간을 보기 전에 허용값을 사전 등록하고 전체 조합을 최대 여덟 개 열거합니다. 평가 결과를 본 뒤 조합을 추가하거나 변경하지 않습니다.
+- 평가 기록을 완성하고 라이브러리 템플릿으로 각 결과와 거절을 기록합니다.
+- 순위를 매기기 전에 거절 프로토콜을 적용합니다. 수익과 무관하게 승인 또는 평가 최대 드로다운이 5%를 초과하는 경우를 포함한 모든 하드 게이트 실패를 거절합니다.
+- 하드 게이트를 통과한 생존자만 기대값, 수익 계수, 충분한 사전 선언 거래 수로 순위를 매깁니다. 승률과 순수익률은 보조 관찰값이며, 정의되지 않은 리스크 조정 성과 지표를 도입하지 않습니다.
 
-Treat these as hard ceilings, not tunable parameters:
+프리셋 라이브러리는 노출을 더 작게 하거나 청산을 더 이르게 할 수만 있으며, 아래 리스크 프로필을 완화할 수 없습니다.
 
-| Control | Limit |
+## 불변의 보수적 리스크 프로필
+
+다음은 조정 가능한 파라미터가 아닌 하드 상한입니다.
+
+| 통제 항목 | 한도 |
 | --- | --- |
-| Allocation per entry | 5% of account equity |
-| Scale-ins | Three entries maximum: initial plus two additions |
-| Per-trade allocation | 15% of account equity maximum |
-| Concurrent positions | Two maximum |
-| Aggregate allocation | 30% of account equity maximum |
-| Acceptance drawdown | 5% maximum |
-| Drawdown circuit breaker | At 5% strategy equity drawdown, stop new entries until explicit human review/reset |
-| Daily-loss circuit breaker | At 30% daily loss, stop new entries; this is an emergency backstop |
+| 진입당 배분 | 계좌 자산의 5% |
+| 추가 진입 | 최대 세 번 진입: 최초 진입과 두 번의 추가 |
+| 거래당 배분 | 계좌 자산의 최대 15% |
+| 동시 포지션 | 최대 두 개 |
+| 총 배분 | 계좌 자산의 최대 30% |
+| 승인 드로다운 | 최대 5% |
+| 드로다운 차단기 | 전략 자산 드로다운 5%에서 명시적 사람 검토/재설정 전까지 신규 진입 중지 |
+| 일일 손실 차단기 | 일일 손실 30%에서 신규 진입 중지; 이는 비상 최후 방어선 |
 
-Do not alter these limits to make a backtest profitable. Map them to the current Freqtrade strategy/configuration capabilities after verifying the installed version and official local references. Keep entry sizing, maximum position adjustments, concurrent-trade controls, and runtime protections consistent with the profile. Never add a position once its declared invalidation condition has occurred.
+백테스트를 수익성 있게 만들기 위해 이 한도를 변경하지 않습니다. 설치된 버전과 공식 로컬 참조를 확인한 뒤, 현재 Freqtrade 전략/설정 기능에 매핑합니다. 진입 크기, 최대 포지션 조정, 동시 거래 통제 및 런타임 보호 장치를 이 프로필과 일관되게 유지합니다. 선언한 무효화 조건이 발생한 뒤에는 절대 포지션을 추가하지 않습니다.
 
-When collecting clarification, restate every numeric limit in this table; do not substitute or omit one.
+명확화를 수집할 때 이 표의 모든 숫자 한도를 다시 명시합니다. 어느 하나도 대체하거나 생략하지 않습니다.
 
-## Experiment workflow
+## 실험 절차
 
-1. Restate the complete contract, hypothesis, assumptions, and risk profile. Obtain approval if the user changed any rule after supplying the template.
-2. Write or update `docs/strategy-notes/<strategy-name>.md` with the hypothesis, entries, exits, scale-ins, risk controls, and acceptance criteria.
-3. Implement the smallest rule-based strategy change. Do not introduce FreqAI unless the idea requires a learned feature/target; if it does, document its target and model namespace.
-4. Run static checks and strategy discovery first. Because the user explicitly requested evaluation, run the local backtest as a separate verification phase after the strategy edit. Use a closed date range and keep generated artifacts ignored.
-5. Reserve a later untouched period for evaluation when data permits. Run `lookahead-analysis` after signal or feature changes and `recursive-analysis` after recursive or window-sensitive indicator changes when the data supports them.
-6. Do not use a profit-only optimizer. Explore only user-authorized non-risk parameters and compare the untouched evaluation period with the development period.
+1. 완전한 계약, 가설, 가정 및 리스크 프로필을 다시 명시합니다. 사용자가 템플릿 제출 후 규칙을 변경했다면 승인을 받습니다.
+2. 가설, 진입, 청산, 추가 진입, 리스크 통제 및 승인 기준을 포함해 `docs/strategy-notes/<strategy-name>.md`를 작성하거나 갱신합니다.
+3. 가장 작은 규칙 기반 전략 변경을 구현합니다. 아이디어에 학습된 특징/목표가 필요하지 않으면 FreqAI를 도입하지 않습니다. 필요하다면 목표와 모델 네임스페이스를 문서화합니다.
+4. 전략 수정 후 사용자가 명시적으로 평가를 요청했으므로, 먼저 정적 검사와 전략 탐색을 실행하고 그 다음 별도 검증 단계에서 로컬 백테스트를 실행합니다. 닫힌 날짜 범위를 사용하고 생성 아티팩트는 무시 상태로 유지합니다.
+5. 데이터가 허용하면 이후의 미사용 기간을 평가용으로 확보합니다. 신호나 특징 변경 후 `lookahead-analysis`를, 재귀적 또는 창 크기에 민감한 지표 변경 후 데이터가 뒷받침되면 `recursive-analysis`를 실행합니다.
+6. 수익만을 기준으로 하는 최적화 도구를 사용하지 않습니다. 사용자가 허용한 비리스크 파라미터만 탐색하고, 미사용 평가 기간을 개발 기간과 비교합니다.
 
-## Decision and report
+## 결정 및 보고
 
-Report the exact dates, pairs, timeframe, configuration assumptions, fees/slippage/funding assumptions, return, trade count, win rate, profit factor, maximum drawdown, maximum exposure, average duration, and development-versus-evaluation results. Call out fill assumptions, sparse samples, regime concentration, and any unavailable bias check.
+정확한 날짜, 페어, 시간대, 설정 가정, 수수료/슬리피지/펀딩 가정, 수익률, 거래 수, 승률, 수익 계수, 최대 드로다운, 최대 노출, 평균 보유 시간 및 개발 대 평가 결과를 보고합니다. 체결 가정, 희소한 표본, 국면 집중 및 이용할 수 없는 편향 검사를 명시합니다.
 
-Reject an acceptance backtest with maximum drawdown above 5%, regardless of profit.
+수익과 무관하게 최대 드로다운이 5%를 초과한 승인 백테스트는 거절합니다.
 
-Select exactly one decision:
+다음 중 정확히 하나의 결정을 선택합니다.
 
-- **candidate:** Every hard limit passes and the result has sufficient trade count and later-period evidence to justify broader testing and dry-run observation.
-- **needs more validation:** No hard-limit breach, but insufficient data, trade count, evaluation evidence, or execution realism.
-- **rejected:** A hard limit is breached, the hypothesis is unsupported, or results depend on brittle/overfit behavior.
+- **후보:** 모든 하드 한도를 통과했고, 더 넓은 테스트와 모의 실행 관찰을 정당화할 만큼 충분한 거래 수와 이후 기간 증거가 있습니다.
+- **추가 검증 필요:** 하드 한도 위반은 없지만, 데이터, 거래 수, 평가 증거 또는 실행 현실성이 불충분합니다.
+- **거절:** 하드 한도를 위반했거나, 가설이 지지되지 않거나, 결과가 취약하거나 과적합된 행태에 의존합니다.
 
-Never claim that the idea is proven or safe for live capital. Do not commit data, models, logs, result exports, private configs, or credentials.
+아이디어가 실증되었거나 실제 자본에 안전하다고 주장하지 않습니다. 데이터, 모델, 로그, 내보낸 결과, 비공개 설정 또는 자격 증명을 커밋하지 않습니다.

@@ -1,111 +1,113 @@
-# Risk-Management Preset Catalog
+# 리스크 관리 프리셋 카탈로그
 
-Choose no more than two IDs in each layer for one experiment. Every numeric interval below is a bounded hypothesis to pre-register, not a profit-search space. Test only the values declared before reviewing the untouched evaluation period.
+한 실험에서 각 레이어별 ID는 최대 두 개 선택합니다. 아래 기본 카드와 `risk-presets/*.md`의 검토 완료 사용자 정의 카드를 함께 선택 원본으로 사용합니다. 아래의 모든 숫자 구간은 수익 탐색 공간이 아니라 사전 등록할 경계가 있는 가설입니다. 미사용 평가 기간을 검토하기 전에 선언한 값만 테스트합니다.
 
-All presets obey the fixed account limits in the [template index](template-index.md): 5% per entry, at most three entries / 15% total per trade, at most two positions / 30% aggregate, 5% strategy drawdown breaker, and 30% daily-loss breaker. Long/short formulas must be mirrored correctly, and fees, spread, slippage, and funding belong in the evaluation assumptions.
+사용자 정의 카드는 `bash .agents/scripts/create-risk-preset.sh <PRESET-ID>`로 생성합니다. 카드의 모든 필드가 채워지지 않았거나 상태가 `검토 완료`가 아니면 선택 후보가 될 수 없습니다.
 
-## Stop layer
+모든 프리셋은 [템플릿 인덱스](template-index.md)의 고정 계좌 한도를 준수합니다. 진입당 5%, 거래당 최대 세 번 진입 / 총 15%, 최대 두 개 포지션 / 총 30%, 5% 전략 드로다운 차단기 및 30% 일일 손실 차단기입니다. 롱/숏 수식은 정확히 대칭으로 적용해야 하며, 수수료, 스프레드, 슬리피지 및 펀딩은 평가 가정에 포함합니다.
 
-### STOP-FIXED-PCT — Fixed percentage stop
+## 손절 레이어
 
-- **Purpose / regime:** Simple, liquid markets with a stable, pre-declared maximum price loss.
-- **Inputs / formula:** `p`; long stop = `average_entry × (1 - p)`, short stop = `average_entry × (1 + p)`.
-- **Allowed range:** `p` from 0.5% to 3.0%, selected before testing.
-- **Trigger:** Submit or maintain the protective stop immediately after every fill, recalculated from average entry only when a permitted scale-in occurs.
-- **Prohibition:** Do not widen the stop after entry or after a loss; do not place a scale-in at or beyond invalidation.
-- **Order / exit behavior:** Close the remaining position when the stop is executable; model gap/slippage assumptions in the backtest.
-- **Caveats:** A fixed percentage may be too tight in high volatility or too loose in low volatility; verify the actual account loss remains inside all hard limits.
+### STOP-FIXED-PCT — 고정 비율 손절
 
-### STOP-ATR — ATR volatility stop
+- **목적 / 국면:** 안정적으로 사전 선언한 최대 가격 손실이 있는 단순하고 유동적인 시장.
+- **입력 / 수식:** `p`; long stop = `average_entry × (1 - p)`, short stop = `average_entry × (1 + p)`.
+- **허용 범위:** 테스트 전에 선택한 `p` 0.5%~3.0%.
+- **트리거:** 모든 체결 직후 보호 손절을 제출하거나 유지하며, 허용된 추가 진입이 발생할 때만 평균 진입가로 재계산합니다.
+- **금지:** 진입 후 또는 손실 후 손절을 넓히지 않으며, 무효화 시점 또는 그 이후에 추가 진입하지 않습니다.
+- **주문 / 청산 행태:** 손절을 실행할 수 있을 때 남은 포지션을 청산합니다. 백테스트에서 갭/슬리피지 가정을 모델링합니다.
+- **유의사항:** 고정 비율은 고변동성에서 너무 좁거나 저변동성에서 너무 넓을 수 있으므로 실제 계좌 손실이 모든 하드 한도 안에 있는지 확인합니다.
 
-- **Purpose / regime:** Markets whose ordinary movement is meaningfully represented by an ATR measured on the decision timeframe.
-- **Inputs / formula:** ATR period `n`, multiplier `k`; long stop = `average_entry - k × ATR(n)`, short stop = `average_entry + k × ATR(n)`.
-- **Allowed range:** `n` from 7 to 28 candles and `k` from 1.0 to 4.0, with values pre-declared.
-- **Trigger:** Establish the stop from the last completed-candle ATR at entry; update only according to the declared rule after permitted entries.
-- **Prohibition:** Do not use an intrabar ATR unavailable at the decision time, widen `k` after entry, or scale in after invalidation.
-- **Order / exit behavior:** Execute a full protective exit when price reaches the stop; account for stop execution and funding assumptions.
-- **Caveats:** ATR can expand sharply around news or liquidations; a stale or illiquid ATR must make the regime ineligible.
+### STOP-ATR — ATR 변동성 손절
 
-### STOP-STRUCTURE — Market-structure stop
+- **목적 / 국면:** 의사결정 시간대에서 측정한 ATR이 통상적 움직임을 유의미하게 나타내는 시장.
+- **입력 / 수식:** ATR 기간 `n`, 승수 `k`; long stop = `average_entry - k × ATR(n)`, short stop = `average_entry + k × ATR(n)`.
+- **허용 범위:** 사전 선언한 `n` 7~28개 캔들 및 `k` 1.0~4.0.
+- **트리거:** 진입 시 마지막 완료 캔들의 ATR로 손절을 설정하고, 허용된 진입 후에만 선언한 규칙에 따라 갱신합니다.
+- **금지:** 의사결정 시점에 이용할 수 없는 캔들 진행 중 ATR을 사용하거나, 진입 후 `k`를 넓히거나, 무효화 후 추가 진입하지 않습니다.
+- **주문 / 청산 행태:** 가격이 손절에 도달하면 전체 보호 청산을 실행합니다. 손절 실행 및 펀딩 가정을 반영합니다.
+- **유의사항:** ATR은 뉴스나 청산 국면에서 급격히 확대될 수 있으며, 오래되었거나 비유동적인 ATR이면 해당 국면은 부적격입니다.
 
-- **Purpose / regime:** Trend or range setups with an objectively detectable recent swing high/low.
-- **Inputs / formula:** Lookback `n`, buffer `b × ATR`; long stop = last confirmed swing low minus buffer, short stop = last confirmed swing high plus buffer.
-- **Allowed range:** `n` from 5 to 50 candles and `b` from 0.1 to 0.5 ATR.
-- **Trigger:** Use only a swing confirmed by the pre-declared pivot definition before the entry decision.
-- **Prohibition:** Do not select a subjective pivot after seeing the outcome, move invalidation farther away, or scale in after invalidation.
-- **Order / exit behavior:** Close the remaining position when the structural level fails; an unconfirmed or unavailable swing means no trade.
-- **Caveats:** Pivot confirmation can delay entries and introduce look-ahead bias if not implemented from completed candles only.
+### STOP-STRUCTURE — 시장 구조 손절
 
-### STOP-CHANDELIER — ATR chandelier trailing stop
+- **목적 / 국면:** 객관적으로 감지 가능한 최근 스윙 고점/저점이 있는 추세 또는 횡보 설정.
+- **입력 / 수식:** 되돌아보기 기간 `n`, 완충폭 `b × ATR`; long stop = last confirmed swing low minus buffer, short stop = last confirmed swing high plus buffer.
+- **허용 범위:** `n` 5~50개 캔들, `b` 0.1~0.5 ATR.
+- **트리거:** 진입 결정 전에 사전 선언한 피벗 정의로 확인된 스윙만 사용합니다.
+- **금지:** 결과를 본 뒤 주관적 피벗을 선택하거나, 무효화를 더 멀리 옮기거나, 무효화 후 추가 진입하지 않습니다.
+- **주문 / 청산 행태:** 구조 수준이 무너지면 남은 포지션을 청산합니다. 미확정 또는 이용 불가한 스윙이면 거래하지 않습니다.
+- **유의사항:** 피벗 확인은 진입을 지연시키며 완료 캔들만으로 구현하지 않으면 미래 정보 참조 편향을 유발할 수 있습니다.
 
-- **Purpose / regime:** Established directional moves where a trailing exit may retain upside while protecting a reversal.
-- **Inputs / formula:** ATR period `n`, initial protective multiplier `k0`, trailing multiplier `kt`, and highest/lowest completed close since entry. At entry, long initial stop = `average_entry - k0 × ATR(n)` and short initial stop = `average_entry + k0 × ATR(n)`; after a completed post-entry candle is available, long chandelier stop = highest completed close minus `kt × ATR(n)` and short chandelier stop = lowest completed close plus `kt × ATR(n)`.
-- **Allowed range:** `n` from 7 to 28 candles, `k0` from 1.0 to 4.0, and `kt` from 1.5 to 5.0; all values must be pre-declared.
-- **Trigger:** Submit the initial protective stop immediately at entry, then ratchet the chandelier stop only in the favorable direction from completed-candle data.
-- **Prohibition:** Do not loosen the trailing level, use future highs/lows, or add to a position after its invalidation level is reached.
-- **Order / exit behavior:** Exit the remaining position at the active stop; the initial protective stop remains active until the chandelier trail is valid.
-- **Caveats:** This is one self-contained Stop ID: its initial protective stop and chandelier trail are both defined here, so no other stop rule is required to define entry risk. It is vulnerable to whipsaw in ranges.
+### STOP-CHANDELIER — ATR 샹들리에 추적 손절
 
-## Profit-taking layer
+- **목적 / 국면:** 추적 청산이 반전을 방어하면서 상승 여력을 보존할 수 있는 확립된 방향성 움직임.
+- **입력 / 수식:** ATR 기간 `n`, 초기 보호 승수 `k0`, 추적 승수 `kt`, 진입 이후 최고/최저 완료 종가. 진입 시 long initial stop = `average_entry - k0 × ATR(n)`, short initial stop = `average_entry + k0 × ATR(n)`; 진입 후 완료된 캔들을 이용할 수 있게 되면 long chandelier stop = highest completed close minus `kt × ATR(n)`, short chandelier stop = lowest completed close plus `kt × ATR(n)`.
+- **허용 범위:** `n` 7~28개 캔들, `k0` 1.0~4.0, `kt` 1.5~5.0이며 모든 값은 사전 선언해야 합니다.
+- **트리거:** 진입 직후 초기 보호 손절을 제출하고, 완료 캔들 데이터로 유리한 방향으로만 샹들리에 손절을 상향/하향 조정합니다.
+- **금지:** 추적 수준을 느슨하게 하거나, 미래 고점/저점을 사용하거나, 무효화 수준 도달 후 포지션을 추가하지 않습니다.
+- **주문 / 청산 행태:** 활성 손절에서 남은 포지션을 청산합니다. 샹들리에 추적이 유효해질 때까지 초기 보호 손절을 활성 상태로 유지합니다.
+- **유의사항:** 이는 하나의 독립 손절 ID입니다. 초기 보호 손절과 샹들리에 추적이 모두 여기 정의되어 있으므로 진입 리스크 정의에 다른 손절 규칙이 필요하지 않습니다. 횡보장에서 급격한 방향 전환에 취약합니다.
 
-### TP-FIXED-R — Fixed R-multiple partial exit
+## 이익 실현 레이어
 
-- **Purpose / regime:** Setups with a well-defined initial risk `R` and a need to realize part of a move predictably.
-- **Inputs / formula:** Initial `R = |average_entry - initial_stop|`; target multiples `r1`, `r2` and first-exit fraction `q`; long target = entry plus `r × R`, short target = entry minus `r × R`.
-- **Allowed range:** `r1` from 0.5R to 2.0R, `r2` from 1.5R to 5.0R, and `q` from 25% to 75%.
-- **Trigger:** Take the pre-declared partial amount at each target, then apply the declared rule to the remainder.
-- **Prohibition:** Do not change targets after observing a move, exceed the filled position size, or remove the protective stop from the remainder.
-- **Order / exit behavior:** Use reduce-only partial exits; remaining size keeps its stop and any pre-declared trailing rule.
-- **Caveats:** Partial exits can improve realized win rate while lowering trend capture; evaluate expectancy and profit factor, not win rate alone.
+### TP-FIXED-R — 고정 R-배수 부분 청산
 
-### TP-ATR-TRAIL — ATR target then trailing exit
+- **목적 / 국면:** 명확히 정의된 초기 리스크 `R`과 움직임 일부를 예측 가능하게 실현할 필요가 있는 설정.
+- **입력 / 수식:** 초기 `R = |average_entry - initial_stop|`; 목표 배수 `r1`, `r2` 및 첫 청산 비율 `q`; long target = entry plus `r × R`, short target = entry minus `r × R`.
+- **허용 범위:** `r1` 0.5R~2.0R, `r2` 1.5R~5.0R, `q` 25%~75%.
+- **트리거:** 각 목표에서 사전 선언한 부분 수량을 청산하고, 남은 물량에는 선언한 규칙을 적용합니다.
+- **금지:** 움직임을 관측한 뒤 목표를 변경하거나, 체결 포지션 크기를 초과하거나, 남은 물량의 보호 손절을 제거하지 않습니다.
+- **주문 / 청산 행태:** reduce-only 부분 청산을 사용합니다. 남은 크기는 손절과 사전 선언한 추적 규칙을 유지합니다.
+- **유의사항:** 부분 청산은 실현 승률을 높일 수 있지만 추세 포착을 낮출 수 있습니다. 승률만이 아니라 기대값과 수익 계수를 평가합니다.
 
-- **Purpose / regime:** Volatile trends where a first target can fund a trailing remainder.
-- **Inputs / formula:** ATR period `n`, first target multiplier `m`, first-exit fraction `q`, trailing multiplier `k`; target uses entry plus/minus `m × ATR(n)` and the remainder uses the declared ATR trail.
-- **Allowed range:** `n` from 7 to 28, `m` from 1.0 to 4.0 ATR, `q` from 25% to 75%, and `k` from 1.5 to 5.0 ATR.
-- **Trigger:** Take the partial target using completed-candle ATR, then ratchet the remainder's trail only favorably.
-- **Prohibition:** Do not combine this preset with `STOP-CHANDELIER`, because each owns a trailing-exit rule. Do not recalculate the target from future volatility, loosen the trail, or delete the initial protective stop before a valid trail exists.
-- **Order / exit behavior:** Use a reduce-only partial exit followed by this preset's trailing stop for the remainder. When paired with any other selected Stop ID, that Stop ID remains the protective stop until this preset's own valid remainder trail begins.
-- **Caveats:** `TP-ATR-TRAIL` owns the remainder's trailing-exit rule and therefore cannot be combined with `STOP-CHANDELIER`, which also owns a trailing exit. With any other selected Stop ID, keep that stop active as protection until this preset's remainder trail is valid.
+### TP-ATR-TRAIL — ATR 목표 후 추적 청산
 
-### TP-INDICATOR — Indicator-defined exit
+- **목적 / 국면:** 첫 목표가 추적 잔량을 뒷받침할 수 있는 변동성 추세.
+- **입력 / 수식:** ATR 기간 `n`, 첫 목표 승수 `m`, 첫 청산 비율 `q`, 추적 승수 `k`; 목표는 entry plus/minus `m × ATR(n)`을 사용하고 잔량은 선언한 ATR 추적을 사용합니다.
+- **허용 범위:** `n` 7~28, `m` 1.0~4.0 ATR, `q` 25%~75%, `k` 1.5~5.0 ATR.
+- **트리거:** 완료 캔들 ATR로 부분 목표를 청산한 뒤, 잔량 추적은 유리한 방향으로만 조정합니다.
+- **금지:** 이 프리셋은 각각 추적 청산 규칙을 가지므로 `STOP-CHANDELIER`와 결합하지 않습니다. 미래 변동성으로 목표를 재계산하거나, 추적을 느슨하게 하거나, 유효한 추적이 생기기 전에 초기 보호 손절을 삭제하지 않습니다.
+- **주문 / 청산 행태:** reduce-only 부분 청산 뒤 이 프리셋의 추적 손절로 잔량을 관리합니다. 다른 선택 손절 ID와 짝지을 때는 이 프리셋의 유효한 잔량 추적이 시작될 때까지 그 손절 ID를 보호 손절로 유지합니다.
+- **유의사항:** `TP-ATR-TRAIL`은 잔량의 추적 청산 규칙을 소유하므로, 역시 추적 청산을 소유하는 `STOP-CHANDELIER`와 결합할 수 없습니다. 다른 선택 손절 ID와 함께라면 잔량 추적이 유효해질 때까지 해당 손절을 보호로 유지합니다.
 
-- **Purpose / regime:** Mean-reversion or momentum-decay setups with a causal, observable exit signal.
-- **Inputs / formula:** Named indicator, timeframe, source, threshold/cross condition, and fraction or full-exit rule; for example, close a long when completed-candle RSI(14) crosses below a pre-declared level.
-- **Allowed range:** Period from 5 to 50, threshold from 10 to 90, and partial fraction from 25% to 100%; exact values must be pre-declared and appropriate to the named indicator.
-- **Trigger:** Act only when the complete, causal indicator condition occurs on the declared timeframe.
-- **Prohibition:** Do not use a vague "momentum fades" rule, intrabar hindsight, or indicator exits to bypass the protective stop.
-- **Order / exit behavior:** Execute a reduce-only partial or full exit as defined; remaining exposure keeps its protective stop.
-- **Caveats:** Indicator exits are easy to overfit. Missing indicator construction details make this preset ineligible.
+### TP-INDICATOR — 지표 정의 청산
 
-## Scale-in layer
+- **목적 / 국면:** 인과적이고 관측 가능한 청산 신호가 있는 평균 회귀 또는 모멘텀 소진 설정.
+- **입력 / 수식:** 명명한 지표, 시간대, 소스, 임계값/교차 조건 및 부분 또는 전체 청산 규칙. 예: 완료 캔들 RSI(14)가 사전 선언 수준 아래로 교차할 때 롱을 청산합니다.
+- **허용 범위:** 기간 5~50, 임계값 10~90, 부분 비율 25%~100%. 정확한 값은 사전 선언해야 하며 명명한 지표에 적합해야 합니다.
+- **트리거:** 선언한 시간대에서 완전하고 인과적인 지표 조건이 발생할 때만 행동합니다.
+- **금지:** 모호한 "모멘텀이 약해짐" 규칙, 캔들 진행 중 사후 판단 또는 보호 손절을 우회하는 지표 청산을 사용하지 않습니다.
+- **주문 / 청산 행태:** 정의한 대로 reduce-only 부분 또는 전체 청산을 실행합니다. 남은 노출은 보호 손절을 유지합니다.
+- **유의사항:** 지표 청산은 과적합하기 쉽습니다. 지표 구성 세부 정보가 누락되면 이 프리셋은 부적격입니다.
 
-### SCALE-NONE — Single-entry position
+## 추가 진입 레이어
 
-- **Purpose / regime:** Baseline for all setups and the default when evidence for scaling is absent.
-- **Inputs / formula:** One 5%-of-equity entry allocation; no further entries.
-- **Allowed range:** Exactly one entry.
-- **Trigger:** Enter only on the initial rule in the strategy idea.
-- **Prohibition:** No averaging down, pyramiding, or discretionary add.
-- **Order / exit behavior:** Manage the one position with the selected stop and profit presets.
-- **Caveats:** This baseline must be included whenever scaling is proposed, so scaling has a comparable control.
+### SCALE-NONE — 단일 진입 포지션
 
-### SCALE-AVERAGE-DOWN — Conditional averaging-down
+- **목적 / 국면:** 모든 설정의 기준선이며, 추가 진입 증거가 없을 때의 기본값.
+- **입력 / 수식:** 계좌 자산의 5% 진입 한 번, 추가 진입 없음.
+- **허용 범위:** 정확히 한 번 진입.
+- **트리거:** 전략 아이디어의 최초 규칙에서만 진입합니다.
+- **금지:** 불리한 가격에서의 평균 단가 낮추기, 유리한 가격에서의 단계적 추가 진입 또는 재량적 추가 진입을 하지 않습니다.
+- **주문 / 청산 행태:** 선택한 손절 및 이익 실현 프리셋으로 단일 포지션을 관리합니다.
+- **유의사항:** 추가 진입을 제안할 때는 비교 가능한 통제를 위해 이 기준선이 반드시 포함되어야 합니다.
 
-- **Purpose / regime:** Explicitly range-bound or mean-reverting setups where an adverse move remains inside the original invalidation level.
-- **Inputs / formula:** Up to three 5%-of-equity entries; exact adverse-move trigger, minimum spacing, and recalculated average entry must be declared before testing.
-- **Allowed range:** One or two additional entries; each is exactly 5% of account equity, total trade allocation no greater than 15%.
-- **Trigger:** Add only after the pre-declared unfavorable-price condition occurs while the regime remains valid and price is strictly before invalidation.
-- **Prohibition:** Never add after invalidation, after a stop trigger, when the regime is no longer valid, or to recover a loss. Do not exceed three entries or 15% total allocation.
-- **Order / exit behavior:** Recalculate position average and maintain one protective exit for total remaining exposure; partial exits are reduce-only.
-- **Caveats:** Averaging down can conceal a weak entry rule and amplify tail losses. It needs a clear baseline (`SCALE-NONE`) and acceptance drawdown at or below 5%.
+### SCALE-AVERAGE-DOWN — 조건부 평균 단가 낮추기
 
-### SCALE-PYRAMID — Confirmation pyramiding
+- **목적 / 국면:** 불리한 움직임이 원래 무효화 수준 안에 남아 있는, 명시적으로 횡보 또는 평균 회귀인 설정.
+- **입력 / 수식:** 계좌 자산의 5% 진입을 최대 세 번. 정확한 불리한 움직임 트리거, 최소 간격 및 재계산한 평균 진입가를 테스트 전에 선언해야 합니다.
+- **허용 범위:** 추가 진입 한 번 또는 두 번. 각각은 계좌 자산의 정확히 5%이며, 거래당 총 배분은 15% 이하입니다.
+- **트리거:** 국면이 유효하고 가격이 엄격히 무효화 이전일 때, 사전 선언한 불리한 가격 조건이 발생한 뒤에만 추가합니다.
+- **금지:** 무효화 후, 손절 트리거 후, 국면이 더 이상 유효하지 않을 때 또는 손실 회복 목적으로 추가하지 않습니다. 세 번 진입 또는 총 배분 15%를 초과하지 않습니다.
+- **주문 / 청산 행태:** 포지션 평균을 재계산하고 남은 총 노출에 하나의 보호 청산을 유지합니다. 부분 청산은 reduce-only입니다.
+- **유의사항:** 평균 단가 낮추기는 약한 진입 규칙을 숨기고 꼬리 손실을 확대할 수 있습니다. 명확한 기준선(`SCALE-NONE`)과 5% 이하의 승인 드로다운이 필요합니다.
 
-- **Purpose / regime:** Strong, liquid trends where price first moves favorably and a confirmation rule supports adding exposure.
-- **Inputs / formula:** Up to three 5%-of-equity entries; exact favorable-move threshold, confirmation signal, spacing, and stop-ratchet rule must be declared.
-- **Allowed range:** One or two additional entries; each is exactly 5% of account equity, total trade allocation no greater than 15%.
-- **Trigger:** Add only after the pre-declared favorable move and confirmation occur while the position has not reached invalidation.
-- **Prohibition:** Do not add on an adverse move, after invalidation, after a stop trigger, or when aggregate position limits are reached. Do not widen the stop to accommodate an add.
-- **Order / exit behavior:** Apply a declared ratcheted protective stop to the aggregate position and reduce-only exits to filled quantity.
-- **Caveats:** Pyramiding increases exposure near later-stage trend risk. Verify actual concurrent aggregate allocation stays at or below 30%.
+### SCALE-PYRAMID — 확인 기반 단계적 추가 진입
+
+- **목적 / 국면:** 가격이 먼저 유리하게 움직이고 확인 규칙이 노출 추가를 뒷받침하는 강하고 유동적인 추세.
+- **입력 / 수식:** 계좌 자산의 5% 진입을 최대 세 번. 정확한 유리한 움직임 임계값, 확인 신호, 간격 및 손절 조정 규칙을 선언해야 합니다.
+- **허용 범위:** 추가 진입 한 번 또는 두 번. 각각은 계좌 자산의 정확히 5%이며, 거래당 총 배분은 15% 이하입니다.
+- **트리거:** 포지션이 무효화에 도달하지 않은 상태에서 사전 선언한 유리한 움직임과 확인이 발생한 뒤에만 추가합니다.
+- **금지:** 불리한 움직임, 무효화 후, 손절 트리거 후 또는 총 포지션 한도 도달 시 추가하지 않습니다. 추가 진입을 수용하려고 손절을 넓히지 않습니다.
+- **주문 / 청산 행태:** 총 포지션에 선언한 조정식 보호 손절을 적용하고, 체결 수량에 대해서만 reduce-only 청산을 적용합니다.
+- **유의사항:** 단계적 추가 진입은 추세 후기 리스크 근처의 노출을 높입니다. 실제 동시 총 배분이 30% 이하인지 확인합니다.
