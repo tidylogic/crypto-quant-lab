@@ -33,7 +33,7 @@ Record one entry for every experiment, including rejected candidates. This log r
 - **Result links or paths:** `[link/path(s)]`
 - **Artifact rule:** A result path may be recorded, but a generated artifact is never committed.
 - **Rejected candidates:** `[combination ID — failed hard gate or reason]`
-- **Untouched-evaluation survivors and ranking:** `[risk-adjusted expectancy, profit factor, and sufficient trade count]`
+- **Untouched-evaluation survivors and ranking:** `[after fixed risk gates, rank by expectancy, profit factor, and sufficient trade count]`
 - **Chosen candidate:** `[one combination ID, or none]`
 - **Exactly one decision:** `[accept / reject / inconclusive]`
 - **Decision rationale:** `[why, including gate outcomes]`
