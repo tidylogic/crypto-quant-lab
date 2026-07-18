@@ -30,7 +30,7 @@ Reject regardless of profit if any condition is true:
 
 ## Combination score table
 
-Mark a row `Rejected` when any hard gate fails. Only untouched-evaluation survivors may be compared, first by risk-adjusted expectancy, then profit factor, with sufficient trade count required; win rate and net return are secondary observations.
+Mark a row `Rejected` when any hard gate fails. Apply all fixed risk gates first, including acceptance/evaluation maximum drawdown at or below 5%. Then rank only untouched-evaluation survivors by expectancy, profit factor, and sufficient trade count; win rate and net return are secondary observations.
 
 | Combination ID | Stop ID | Profit-taking ID | Scale-in ID | Expectancy | Profit factor | Trade count | Max drawdown | Win rate | Net return | Status |
 | --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | --- |
@@ -40,10 +40,12 @@ Mark a row `Rejected` when any hard gate fails. Only untouched-evaluation surviv
 ## Gate review and ranking
 
 - **Rejected candidates and failed gate(s):** `[combination ID: reason]`
-- **Untouched-evaluation survivor ranking:** `[rank by risk-adjusted expectancy, then profit factor, confirming sufficient trades]`
+- **Untouched-evaluation survivor ranking:** `[rank by expectancy, then profit factor, confirming sufficient trades]`
 - **Execution/fill caveats:** `[fees, spread, slippage, funding, gaps, liquidity, or data-quality limitations]`
 
 ## Decision — choose exactly one
+
+Mark one and only one checkbox below; leave the other two unchecked.
 
 - [ ] `Accept [one combination ID] for the next pre-registered step.`
 - [ ] `Reject the experiment; no candidate passed the gates.`
