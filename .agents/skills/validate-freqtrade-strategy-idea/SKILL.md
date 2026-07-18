@@ -26,6 +26,7 @@ Request clarification for every missing, ambiguous, or conflicting required fiel
 - **Profit-taking:** Target risk/reward or exit condition; each partial-exit proportion; final-exit rule.
 - **No-trade conditions:** Filters that block entry, or `none`.
 - **Backtest scope:** Historical date range and pairs.
+- **Reusable presets:** `none`, or the selected stop, profit-taking, and scale-in preset IDs.
 
 ## Optional context
 
@@ -38,6 +39,18 @@ Request clarification for every missing, ambiguous, or conflicting required fiel
 ```
 
 If an optional item is absent, use the relevant repository configuration where possible and name the assumption in the final report. If the evaluation range or meaningful trade count is absent, complete the experiment if otherwise possible but never return `candidate`; return `needs more validation`.
+
+## Reusable trading-experiment presets
+
+When reusable presets are selected, first read `.agents/templates/trading-experiments/template-index.md` and use its linked templates. The strategy idea must name every selected stop, profit-taking, and scale-in ID; an absent, ambiguous, conflicting, or unknown ID fails the complete-contract gate.
+
+- Select no more than two IDs per layer: stop, profit-taking, and scale-in.
+- Pre-register allowed values and enumerate no more than eight total combinations before viewing the untouched evaluation period. Do not add or change a combination after viewing evaluation results.
+- Complete the evaluation record and log each result and rejection using the library templates.
+- Apply its rejection protocol before ranking: reject any hard-gate failure, including any acceptance or evaluation maximum drawdown above 5%, regardless of profit.
+- Rank only untouched-evaluation survivors by expectancy, profit factor, and sufficient pre-declared trade count. Treat win rate and net return as secondary observations; do not introduce undefined risk-adjusted metrics.
+
+The preset library can only make exposure smaller or exits earlier; it cannot relax the risk profile below.
 
 ## Immutable conservative risk profile
 
