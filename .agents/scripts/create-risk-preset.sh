@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# Keep this executable checked out with LF line endings; see .gitattributes.
 set -euo pipefail
 usage() { printf '%s\n' '사용법: bash .agents/scripts/create-risk-preset.sh <PRESET-ID> [--output-root DIR]' '기본 출력 경로: .agents/templates/trading-experiments/risk-presets'; }
 if [[ "${1:-}" == "--help" ]]; then usage; exit 0; fi
