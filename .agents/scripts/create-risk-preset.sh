@@ -13,14 +13,12 @@ if [[ $# -gt 0 ]]; then
     output_root=$2
 fi
 target="$output_root/$preset_id.md"
-if [[ -e $target ]]; then echo "기존 프리셋 카드를 덮어쓸 수 없습니다: $target" >&2; exit 1; fi
 mkdir -p -- "$output_root"
-cat > "$target" <<EOF
-# 리스크 프리셋 카드
-
-- **프리셋 ID:** \`$preset_id\`
-- **계층:** \`$(printf '%s' "$preset_id" | cut -d- -f1)\`
-- **상태:** `[초안 / 검토 완료 / 사용 중단]`
+temporary=$(mktemp "$output_root/.${preset_id}.XXXXXX")
+trap 'rm -f -- "$temporary"' EXIT
+{
+    printf '%s\n' '# 리스크 프리셋 카드' '' "- **프리셋 ID:** $preset_id" "- **계층:** ${preset_id%%-*}" '- **상태:** [초안 / 검토 완료 / 사용 중단]'
+    cat <<'EOF'
 
 ## 적용 장세
 
@@ -47,4 +45,8 @@ cat > "$target" <<EOF
 - [ ] 하드 리스크 한도를 완화하지 않는다.
 - [ ] 계층별 최대 두 ID와 전체 최대 여덟 조합 규칙을 지킨다.
 EOF
+} > "$temporary"
+if ! ln -- "$temporary" "$target"; then echo "기존 프리셋 카드를 덮어쓸 수 없습니다: $target" >&2; exit 1; fi
+rm -f -- "$temporary"
+trap - EXIT
 echo "리스크 프리셋 카드 생성됨: $target"

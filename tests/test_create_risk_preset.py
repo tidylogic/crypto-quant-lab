@@ -30,8 +30,10 @@ class CreateRiskPresetTests(unittest.TestCase):
                 result = self.run_generator(preset_id, "--output-root", tmp)
                 card = Path(tmp) / f"{preset_id}.md"
                 self.assertEqual(result.returncode, 0, result.stderr)
-                self.assertIn("# 리스크 프리셋 카드", card.read_text())
-                self.assertIn(preset_id, card.read_text())
+                content = card.read_text()
+                self.assertEqual(result.stderr, "")
+                for required in ("# 리스크 프리셋 카드", preset_id, "## 적용 장세", "## 규칙", "## 비용과 실패 조건", "## 검토 확인"):
+                    self.assertIn(required, content)
 
     def test_rejects_invalid_or_duplicate_id_without_overwrite(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
