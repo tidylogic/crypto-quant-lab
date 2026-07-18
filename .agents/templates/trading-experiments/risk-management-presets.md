@@ -39,12 +39,12 @@ All presets obey the fixed account limits in the [template index](template-index
 ### STOP-CHANDELIER — ATR chandelier trailing stop
 
 - **Purpose / regime:** Established directional moves where a trailing exit may retain upside while protecting a reversal.
-- **Inputs / formula:** ATR period `n`, multiplier `k`, highest/lowest completed close since entry; long stop = highest close minus `k × ATR(n)`, short stop = lowest close plus `k × ATR(n)`. Declare a protective initial stop from another selected stop rule.
-- **Allowed range:** `n` from 7 to 28 candles and `k` from 1.5 to 5.0.
-- **Trigger:** Ratchet only in the favorable direction from completed-candle data after entry.
+- **Inputs / formula:** ATR period `n`, initial protective multiplier `k0`, trailing multiplier `kt`, and highest/lowest completed close since entry. At entry, long initial stop = `average_entry - k0 × ATR(n)` and short initial stop = `average_entry + k0 × ATR(n)`; after a completed post-entry candle is available, long chandelier stop = highest completed close minus `kt × ATR(n)` and short chandelier stop = lowest completed close plus `kt × ATR(n)`.
+- **Allowed range:** `n` from 7 to 28 candles, `k0` from 1.0 to 4.0, and `kt` from 1.5 to 5.0; all values must be pre-declared.
+- **Trigger:** Submit the initial protective stop immediately at entry, then ratchet the chandelier stop only in the favorable direction from completed-candle data.
 - **Prohibition:** Do not loosen the trailing level, use future highs/lows, or add to a position after its invalidation level is reached.
-- **Order / exit behavior:** Exit the remaining position at the trailing stop; the initial protective stop remains active until the trail is valid.
-- **Caveats:** It is vulnerable to whipsaw in ranges and needs an explicit initial-stop companion; do not silently treat it as a complete entry-risk definition.
+- **Order / exit behavior:** Exit the remaining position at the active stop; the initial protective stop remains active until the chandelier trail is valid.
+- **Caveats:** This is one self-contained Stop ID: its initial protective stop and chandelier trail are both defined here, so no other stop rule is required to define entry risk. It is vulnerable to whipsaw in ranges.
 
 ## Profit-taking layer
 
@@ -64,9 +64,9 @@ All presets obey the fixed account limits in the [template index](template-index
 - **Inputs / formula:** ATR period `n`, first target multiplier `m`, first-exit fraction `q`, trailing multiplier `k`; target uses entry plus/minus `m × ATR(n)` and the remainder uses the declared ATR trail.
 - **Allowed range:** `n` from 7 to 28, `m` from 1.0 to 4.0 ATR, `q` from 25% to 75%, and `k` from 1.5 to 5.0 ATR.
 - **Trigger:** Take the partial target using completed-candle ATR, then ratchet the remainder's trail only favorably.
-- **Prohibition:** Do not recalculate the target from future volatility, loosen the trail, or delete the initial protective stop before a valid trail exists.
-- **Order / exit behavior:** Use reduce-only partial exit followed by the trailing stop for the remainder.
-- **Caveats:** Combined target/trail logic can overlap with STOP-CHANDELIER; document which stop governs when both are present.
+- **Prohibition:** Do not combine this preset with `STOP-CHANDELIER`, because each owns a trailing-exit rule. Do not recalculate the target from future volatility, loosen the trail, or delete the initial protective stop before a valid trail exists.
+- **Order / exit behavior:** Use a reduce-only partial exit followed by this preset's trailing stop for the remainder. When paired with any other selected Stop ID, that Stop ID remains the protective stop until this preset's own valid remainder trail begins.
+- **Caveats:** `TP-ATR-TRAIL` owns the remainder's trailing-exit rule and therefore cannot be combined with `STOP-CHANDELIER`, which also owns a trailing exit. With any other selected Stop ID, keep that stop active as protection until this preset's remainder trail is valid.
 
 ### TP-INDICATOR — Indicator-defined exit
 
@@ -109,4 +109,3 @@ All presets obey the fixed account limits in the [template index](template-index
 - **Prohibition:** Do not add on an adverse move, after invalidation, after a stop trigger, or when aggregate position limits are reached. Do not widen the stop to accommodate an add.
 - **Order / exit behavior:** Apply a declared ratcheted protective stop to the aggregate position and reduce-only exits to filled quantity.
 - **Caveats:** Pyramiding increases exposure near later-stage trend risk. Verify actual concurrent aggregate allocation stays at or below 30%.
-
