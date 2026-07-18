@@ -4,7 +4,7 @@
 
 ## 생성기 추가 후 사용
 
-생성기가 추가된 뒤 다음 명령으로 입력 초안을 생성합니다.
+다음 명령으로 입력 초안을 생성합니다.
 
 ```bash
 bash .agents/scripts/create-trading-experiment.sh <experiment-slug>

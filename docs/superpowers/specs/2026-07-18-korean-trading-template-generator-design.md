@@ -38,4 +38,3 @@ bash .agents/scripts/create-trading-experiment.sh <experiment-slug>
 - 새 Python `unittest`는 생성기가 네 파일을 올바른 이름·한국어 템플릿 본문으로 생성하는지 검증한다.
 - 같은 slug 재생성 및 잘못된 slug가 비영(0) 종료로 실패하고 기존 파일을 유지하는지 검증한다.
 - 전체 `unittest` 스위트, 스킬 구조 검증, `git diff --check`를 실행한다.
-

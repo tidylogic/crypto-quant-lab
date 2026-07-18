@@ -42,7 +42,7 @@ description: Use when a user wants to turn an algorithmic trading idea into a Fr
 
 ## 재사용 가능한 트레이딩 실험 프리셋
 
-재사용 프리셋을 선택하면 먼저 `.agents/templates/trading-experiments/template-index.md`와 연결된 템플릿을 읽습니다. 생성기가 추가된 뒤에는 다음 명령으로 입력 초안을 생성할 수 있습니다.
+재사용 프리셋을 선택하면 먼저 `.agents/templates/trading-experiments/template-index.md`와 연결된 템플릿을 읽습니다. 다음 명령으로 입력 초안을 생성할 수 있습니다.
 
 ```bash
 bash .agents/scripts/create-trading-experiment.sh <experiment-slug>
