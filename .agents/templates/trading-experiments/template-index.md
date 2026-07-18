@@ -30,7 +30,6 @@ These ceilings remain fixed for every preset and every test. A preset can only m
 | More than two IDs selected in any layer, or more than eight combinations | Reject the experiment definition. |
 | Any candidate breaches an account limit or has acceptance/evaluation backtest max drawdown above **5%** | Reject, regardless of profit. |
 | Evaluation trade count is below the pre-declared minimum | Reject as insufficient evidence. |
-| Candidate passes all gates | Rank on the untouched evaluation period by expectancy, profit factor, and sufficient trade count. |
+| Candidate passes all gates | Only after applying the account limits and 5% drawdown hard gate first, rank untouched evaluation survivors by expectancy, profit factor, and sufficient trade count. |
 
 Win rate and net return are secondary observations; they never override the gates or the primary ranking criteria.
-
