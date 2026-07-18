@@ -163,4 +163,3 @@
 - [ ] **Step 2: 범위를 점검한다.**
 
   `git diff --name-only origin/main..HEAD`가 설계/계획 문서, 한국어 템플릿, 검증 스킬, 생성기, 생성기 테스트만 포함하는지 확인한다. 기존 사용자 미추적 파일과 생성된 `docs/strategy-notes/experiments/` 파일은 stage하지 않는다.
-
