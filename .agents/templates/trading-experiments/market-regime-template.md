@@ -1,45 +1,45 @@
-# Market Regime Template
+# 시장 국면 템플릿
 
-Use one completed record for each permitted and excluded regime. Conditions must be observable when the decision is made, use the declared data source/timeframe, and be assessed from completed data. If a required signal is unavailable or ambiguous, **do not trade**.
+허용 및 제외 국면마다 작성 완료한 기록을 하나씩 사용합니다. 조건은 의사결정 시점에 관측 가능하고, 선언한 데이터 소스/시간대를 사용하며, 완료된 데이터로 판단해야 합니다. 필수 신호를 이용할 수 없거나 모호하면 **거래하지 않습니다**.
 
-## Experiment and observation details
+## 실험 및 관측 세부 정보
 
-- **Experiment name / version:** `[name]`
-- **Pairs / venue / market type:** `[list]`
-- **Decision timestamp timezone:** `[timezone]`
-- **Decision timeframe and data sources:** `[timeframe, exchange/indicator/funding sources]`
+- **실험 이름 / 버전:** `[이름]`
+- **페어 / 거래소 / 시장 유형:** `[목록]`
+- **의사결정 타임스탬프 시간대:** `[시간대]`
+- **의사결정 시간대 및 데이터 소스:** `[시간대, 거래소/지표/펀딩 소스]`
 
-## Permitted regime
+## 허용 국면
 
-| Condition | Observable rule | Measurement timeframe / source | Required state |
+| 조건 | 관측 가능 규칙 | 측정 시간대 / 소스 | 필수 상태 |
 | --- | --- | --- | --- |
-| Trend | `[e.g., completed-candle MA relationship, slope, or structure rule]` | `[source]` | `[state]` |
-| Volatility | `[e.g., ATR %, realized volatility, or range rule]` | `[source]` | `[state]` |
-| Liquidity | `[e.g., volume, spread, depth, or order-book rule]` | `[source]` | `[state]` |
-| Session | `[named session and UTC times]` | `[source]` | `[state]` |
-| Funding | `[perpetual funding threshold/direction; N/A for non-perpetuals]` | `[source]` | `[state]` |
+| 추세 | `[예: 완료 캔들 MA 관계, 기울기 또는 구조 규칙]` | `[소스]` | `[상태]` |
+| 변동성 | `[예: ATR %, 실현 변동성 또는 범위 규칙]` | `[소스]` | `[상태]` |
+| 유동성 | `[예: 거래량, 스프레드, 깊이 또는 오더북 규칙]` | `[소스]` | `[상태]` |
+| 세션 | `[명명한 세션 및 UTC 시간]` | `[소스]` | `[상태]` |
+| 펀딩 | `[무기한 선물 펀딩 임계값/방향; 무기한 선물이 아니면 N/A]` | `[소스]` | `[상태]` |
 
-- **All permitted conditions must be true:** `[yes]`
-- **Permitted-regime action:** `[allow only the pre-registered strategy entry]`
+- **모든 허용 조건은 참이어야 함:** `[예]`
+- **허용 국면 행동:** `[사전 등록한 전략 진입만 허용]`
 
-## Excluded regime
+## 제외 국면
 
-| Condition | Observable exclusion rule | Measurement timeframe / source | Exclusion action |
+| 조건 | 관측 가능한 제외 규칙 | 측정 시간대 / 소스 | 제외 행동 |
 | --- | --- | --- | --- |
-| Trend | `[rule]` | `[source]` | `Do not trade.` |
-| Volatility | `[rule]` | `[source]` | `Do not trade.` |
-| Liquidity | `[rule]` | `[source]` | `Do not trade.` |
-| Session | `[rule]` | `[source]` | `Do not trade.` |
-| Funding | `[rule]` | `[source]` | `Do not trade.` |
+| 추세 | `[규칙]` | `[소스]` | `거래하지 않습니다.` |
+| 변동성 | `[규칙]` | `[소스]` | `거래하지 않습니다.` |
+| 유동성 | `[규칙]` | `[소스]` | `거래하지 않습니다.` |
+| 세션 | `[규칙]` | `[소스]` | `거래하지 않습니다.` |
+| 펀딩 | `[규칙]` | `[소스]` | `거래하지 않습니다.` |
 
-## Signal availability and conflicts
+## 신호 가용성 및 충돌
 
-- **Unavailable required signal:** `Do not trade.`
-- **Ambiguous, stale, inconsistent, or conflicting signal:** `Do not trade.`
-- **Regime changes after entry:** `[pre-declared exit/hold rule; it cannot override protective stops or invalidation]`
+- **필수 신호를 이용할 수 없음:** `거래하지 않습니다.`
+- **모호하거나, 오래되었거나, 불일치하거나, 충돌하는 신호:** `거래하지 않습니다.`
+- **진입 후 국면 변경:** `[사전 선언한 청산/보유 규칙; 보호 손절 또는 무효화를 무시할 수 없음]`
 
-## Fixed risk constraints that still apply
+## 계속 적용되는 고정 리스크 제약
 
-- Each entry is capped at 5% of account equity; no trade exceeds three entries or 15% total allocation.
-- No more than two concurrent positions or 30% aggregate allocation may be open.
-- Stop the strategy at a 5% strategy drawdown; stop opening positions for the day at a 30% daily loss.
+- 각 진입은 전체 계좌 자산의 5%로 제한되며, 한 거래는 진입 세 번 또는 총 배분 15%를 초과할 수 없습니다.
+- 동시에 두 개 초과의 포지션 또는 총 배분 30% 초과를 보유할 수 없습니다.
+- 5% 전략 드로다운에서 전략을 중지하고, 30% 일일 손실에서 해당 일의 신규 포지션 개설을 중지합니다.

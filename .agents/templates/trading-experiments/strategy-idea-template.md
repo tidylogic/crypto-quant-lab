@@ -1,73 +1,73 @@
-# Strategy Idea Template
+# 전략 아이디어 템플릿
 
-Use this template before development testing. A missing, ambiguous, or conflicting rule makes the idea ineligible: **do not trade**. Fill every bracketed field with a causal, completed-candle rule; do not use evaluation-period results to change it.
+개발 테스트 전에 이 템플릿을 사용합니다. 누락되었거나 모호하거나 충돌하는 규칙이 있으면 아이디어는 부적격입니다. **거래하지 않습니다**. 대괄호 안의 모든 필드를 인과적인 완결 캔들 규칙으로 작성하고, 평가 기간 결과로 이를 변경하지 않습니다.
 
-## Experiment identity
+## 실험 식별 정보
 
-- **Experiment name / version:** `[name]`
-- **Author and date pre-registered:** `[name, YYYY-MM-DD]`
-- **Hypothesis:** `[If observable condition X occurs in market scope Y, then entry rule Z is expected to produce the stated behaviour within the fixed risk limits because ...]`
-- **Direction:** `[long / short / both with separately stated rules]`
-- **Decision timeframe / informative timeframes:** `[timeframe(s)]`
+- **실험 이름 / 버전:** `[이름]`
+- **작성자 및 사전 등록일:** `[이름, YYYY-MM-DD]`
+- **가설:** `[시장 범위 Y에서 관측 가능한 조건 X가 발생하면, 고정 리스크 한도 내에서 진입 규칙 Z가 ... 때문에 명시한 행태를 낼 것으로 예상한다]`
+- **방향:** `[long / short / 각각 별도 규칙을 명시한 both]`
+- **의사결정 시간대 / 보조 시간대:** `[시간대]`
 
-## Market scope
+## 시장 범위
 
-- **Pairs / instruments and venue:** `[list]`
-- **Market type:** `[spot / perpetual / other]`
-- **Permitted regime reference:** `[link or path to completed market-regime template]`
-- **Excluded regime reference:** `[link or path to completed market-regime template]`
-- **Trading session / timezone:** `[rule]`
+- **페어 / 상품 및 거래소:** `[목록]`
+- **시장 유형:** `[spot / perpetual / 기타]`
+- **허용 국면 참조:** `[작성 완료한 market-regime template 링크 또는 경로]`
+- **제외 국면 참조:** `[작성 완료한 market-regime template 링크 또는 경로]`
+- **거래 세션 / 시간대:** `[규칙]`
 
-## Exact initial entry
+## 정확한 최초 진입
 
-- **Data available at decision time:** `[completed-candle indicators, order-book/liquidity data, funding data, etc.]`
-- **Long entry rule:** `[exact boolean condition, order type, and trigger timing]`
-- **Short entry rule:** `[exact boolean condition, order type, and trigger timing, or N/A]`
-- **Initial entry allocation:** `Exactly 5% of total account equity.`
-- **Initial-entry cancellation rule:** `[condition that cancels an unfilled order]`
+- **의사결정 시점에 이용 가능한 데이터:** `[completed-candle 지표, 오더북/유동성 데이터, 펀딩 데이터 등]`
+- **Long 진입 규칙:** `[정확한 boolean 조건, 주문 유형 및 트리거 시점]`
+- **Short 진입 규칙:** `[정확한 boolean 조건, 주문 유형 및 트리거 시점 또는 N/A]`
+- **최초 진입 배분:** `전체 계좌 자산의 정확히 5%.`
+- **최초 진입 주문 취소 규칙:** `[미체결 주문을 취소하는 조건]`
 
-## No-trade rules and invalidation
+## 거래 금지 규칙 및 무효화
 
-- **No-trade rules:** `[each observable condition that blocks entry, including unavailable/ambiguous regime signals]`
-- **In-position invalidation:** `[objective condition that proves the thesis wrong]`
-- **Response to invalidation:** `[protective exit; no scale-in at or after invalidation]`
-- **Conflicting signal rule:** `Do not trade.`
+- **거래 금지 규칙:** `[이용 불가/모호한 국면 신호를 포함해 진입을 막는 각 관측 가능 조건]`
+- **포지션 보유 중 무효화:** `[가설이 틀렸음을 입증하는 객관적 조건]`
+- **무효화 대응:** `[보호 청산; 무효화 시점 또는 그 이후 추가 진입 금지]`
+- **충돌 신호 규칙:** `거래하지 않습니다.`
 
-## Permitted risk-management preset IDs
+## 허용되는 리스크 관리 프리셋 ID
 
-Select at most two IDs in each layer from the [risk-management preset catalog](risk-management-presets.md). Leave unused fields as `N/A`. Select no more than eight total stop × profit-taking × scale-in combinations.
+[리스크 관리 프리셋 카탈로그](risk-management-presets.md)의 각 레이어에서 ID를 최대 두 개 선택합니다. 사용하지 않는 필드는 `N/A`로 둡니다. 손절 × 이익 실현 × 추가 진입의 전체 조합은 여덟 개를 초과할 수 없습니다.
 
-| Layer | First permitted ID | Second permitted ID | Exact pre-declared inputs / non-risk ranges |
+| 레이어 | 첫 번째 허용 ID | 두 번째 허용 ID | 정확한 사전 선언 입력값 / 비리스크 범위 |
 | --- | --- | --- | --- |
-| Stop | `[STOP-FIXED-PCT / STOP-ATR / STOP-STRUCTURE / STOP-CHANDELIER]` | `[ID or N/A]` | `[only catalog-permitted values]` |
-| Profit-taking | `[TP-FIXED-R / TP-ATR-TRAIL / TP-INDICATOR]` | `[ID or N/A]` | `[only catalog-permitted values]` |
-| Scale-in | `[SCALE-NONE / SCALE-AVERAGE-DOWN / SCALE-PYRAMID]` | `[ID or N/A]` | `[only catalog-permitted values]` |
+| 손절 | `[STOP-FIXED-PCT / STOP-ATR / STOP-STRUCTURE / STOP-CHANDELIER]` | `[ID 또는 N/A]` | `[카탈로그에서 허용한 값만]` |
+| 이익 실현 | `[TP-FIXED-R / TP-ATR-TRAIL / TP-INDICATOR]` | `[ID 또는 N/A]` | `[카탈로그에서 허용한 값만]` |
+| 추가 진입 | `[SCALE-NONE / SCALE-AVERAGE-DOWN / SCALE-PYRAMID]` | `[ID 또는 N/A]` | `[카탈로그에서 허용한 값만]` |
 
-### Non-risk parameter ranges
+### 비리스크 파라미터 범위
 
-| Parameter | Pre-declared range or exact value | Rationale | Fixed before evaluation? |
+| 파라미터 | 사전 선언 범위 또는 정확한 값 | 근거 | 평가 전 고정? |
 | --- | --- | --- | --- |
-| `[indicator / lookback / threshold / entry timing]` | `[bounded range]` | `[hypothesis rationale]` | `[yes]` |
-| `[parameter]` | `[bounded range]` | `[hypothesis rationale]` | `[yes]` |
+| `[indicator / lookback / threshold / entry timing]` | `[경계가 있는 범위]` | `[가설 근거]` | `[예]` |
+| `[parameter]` | `[경계가 있는 범위]` | `[가설 근거]` | `[예]` |
 
-### Forbidden parameters and behaviours
+### 금지 파라미터 및 행태
 
-- `[parameter or behaviour excluded from this experiment]`
-- No retrospective parameter changes after viewing untouched evaluation results.
-- No discretionary entries, exits, pivots, or regime overrides.
-- No stop widening and no scale-in after invalidation or a stop trigger.
+- `[이 실험에서 제외하는 파라미터 또는 행태]`
+- 미사용 평가 결과를 확인한 뒤 파라미터를 소급 변경하지 않습니다.
+- 재량적 진입, 청산, 피벗 또는 국면 무시는 금지됩니다.
+- 손절 확대와 무효화 또는 손절 트리거 이후 추가 진입은 금지됩니다.
 
-## Fixed account limits (not tunable)
+## 고정 계좌 한도(조정 불가)
 
-- Every entry is exactly 5% of account equity.
-- A trade has at most three entries and 15% total account allocation.
-- At most two concurrent positions and 30% aggregate account allocation are allowed.
-- A 5% strategy drawdown breaker stops the strategy for investigation before new allocation.
-- A 30% daily-loss breaker stops opening positions for the rest of that day.
+- 모든 진입은 전체 계좌 자산의 정확히 5%입니다.
+- 한 거래는 진입을 최대 세 번만 하며 총 계좌 배분은 15%입니다.
+- 동시 포지션은 최대 두 개이고 총 계좌 배분은 30%입니다.
+- 5% 전략 드로다운 차단기는 새 배분 전에 조사를 위해 전략을 중지합니다.
+- 30% 일일 손실 차단기는 해당 일의 남은 시간 동안 포지션 개설을 중지합니다.
 
-## Pre-registration acknowledgement
+## 사전 등록 확인
 
-- **Development range:** `[start date to end date]`
-- **Untouched evaluation range:** `[start date to end date; later than development]`
-- **Combination count (maximum eight):** `[count and enumeration reference]`
-- **Prepared by / date:** `[name, YYYY-MM-DD]`
+- **개발 범위:** `[시작 날짜~종료 날짜]`
+- **미사용 평가 범위:** `[시작 날짜~종료 날짜; 개발 기간 이후]`
+- **조합 수(최대 여덟 개):** `[수와 열거 참조]`
+- **작성자 / 날짜:** `[이름, YYYY-MM-DD]`

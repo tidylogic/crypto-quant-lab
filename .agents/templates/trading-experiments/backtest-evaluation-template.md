@@ -1,54 +1,54 @@
-# Backtest Evaluation Template
+# 백테스트 평가 템플릿
 
-Complete this record after pre-registering the idea, regime, preset IDs, values, and combinations. Development data may narrow candidates; the later evaluation period is untouched until this review. Do not change a combination after viewing evaluation results.
+아이디어, 국면, 프리셋 ID, 값 및 조합을 사전 등록한 뒤 이 기록을 작성합니다. 개발 데이터는 후보를 좁히는 데만 사용할 수 있으며, 이후 평가 기간은 이 검토 전까지 미사용 상태로 둡니다. 평가 결과를 본 뒤 조합을 변경하지 않습니다.
 
-## Evaluation setup
+## 평가 설정
 
-- **Experiment name / version:** `[name]`
-- **Idea and regime records:** `[links or paths]`
-- **Development date range:** `[YYYY-MM-DD to YYYY-MM-DD]`
-- **Untouched evaluation date range:** `[YYYY-MM-DD to YYYY-MM-DD; later and not used for selection]`
-- **Pairs / instruments / venue / market type:** `[list]`
-- **Timeframe(s):** `[list]`
-- **Fee assumption:** `[maker/taker rate and methodology]`
-- **Spread and slippage assumption:** `[method and amount]`
-- **Funding assumption:** `[source, frequency, and treatment; N/A if not applicable]`
-- **Minimum evaluation trade count:** `[integer, pre-declared]`
-- **Selected IDs per layer:** `Stops: [up to two]; profit-taking: [up to two]; scale-in: [up to two].`
-- **Pre-registered combination count:** `[1–8; link/path to enumeration]`
+- **실험 이름 / 버전:** `[이름]`
+- **아이디어 및 국면 기록:** `[링크 또는 경로]`
+- **개발 날짜 범위:** `[YYYY-MM-DD~YYYY-MM-DD]`
+- **미사용 평가 날짜 범위:** `[YYYY-MM-DD~YYYY-MM-DD; 이후 기간이며 선택에 사용하지 않음]`
+- **페어 / 상품 / 거래소 / 시장 유형:** `[목록]`
+- **시간대:** `[목록]`
+- **수수료 가정:** `[maker/taker 비율 및 방법론]`
+- **스프레드 및 슬리피지 가정:** `[방법 및 금액]`
+- **펀딩 가정:** `[소스, 빈도 및 처리; 해당하지 않으면 N/A]`
+- **최소 평가 거래 수:** `[정수, 사전 선언]`
+- **레이어별 선택 ID:** `손절: [최대 두 개]; 이익 실현: [최대 두 개]; 추가 진입: [최대 두 개].`
+- **사전 등록 조합 수:** `[1–8; 열거 링크/경로]`
 
-## Hard rejection gates
+## 하드 거절 게이트
 
-Reject regardless of profit if any condition is true:
+다음 조건 중 하나라도 참이면 수익과 무관하게 거절합니다.
 
-- An entry exceeds 5% of account equity, a trade exceeds three entries or 15% total allocation, or concurrent exposure exceeds two positions or 30% aggregate allocation.
-- The 5% strategy drawdown breaker or 30% daily-loss breaker is absent, bypassed, or breached.
-- Acceptance/evaluation maximum drawdown is **greater than 5%**.
-- Evaluation trade count is below the pre-declared minimum.
-- More than two IDs were selected in any layer, more than eight combinations were tested, or the configuration differs from pre-registration.
-- Any idea, regime, entry, exit, invalidation, or execution assumption is missing, ambiguous, or contradictory.
+- 진입 하나가 계좌 자산의 5%를 초과하거나, 거래가 세 번 초과 진입 또는 총 배분 15%를 초과하거나, 동시 노출이 두 개 포지션 또는 총 배분 30%를 초과합니다.
+- 5% 전략 드로다운 차단기 또는 30% 일일 손실 차단기가 없거나, 우회되었거나, 위반되었습니다.
+- 승인/평가 최대 드로다운이 **5% 초과**입니다.
+- 평가 거래 수가 사전 선언한 최소치 미만입니다.
+- 어느 레이어에서든 ID를 두 개 초과로 선택했거나, 여덟 개 초과 조합을 테스트했거나, 구성이 사전 등록과 다릅니다.
+- 아이디어, 국면, 진입, 청산, 무효화 또는 실행 가정 중 하나라도 누락되었거나 모호하거나 충돌합니다.
 
-## Combination score table
+## 조합 점수 표
 
-Mark a row `Rejected` when any hard gate fails. Apply all fixed risk gates first, including acceptance/evaluation maximum drawdown at or below 5%. Then rank only untouched-evaluation survivors by expectancy, profit factor, and sufficient trade count; win rate and net return are secondary observations.
+하드 게이트 하나라도 실패한 행은 `Rejected`로 표시합니다. 승인/평가 최대 드로다운 5% 이하를 포함한 모든 고정 리스크 게이트를 먼저 적용합니다. 그다음 미사용 평가 생존자만 기대값, Profit factor, 충분한 사전 선언 거래 수로 순위를 매기며, 승률과 순수익률은 보조 관찰값입니다.
 
-| Combination ID | Stop ID | Profit-taking ID | Scale-in ID | Expectancy | Profit factor | Trade count | Max drawdown | Win rate | Net return | Status |
+| 조합 ID | 손절 ID | 이익 실현 ID | 추가 진입 ID | 기대값 | Profit factor | 거래 수 | 최대 드로다운 | 승률 | 순수익률 | 상태 |
 | --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | --- |
 | `[C-01]` | `[ID]` | `[ID]` | `[ID]` | `[value]` | `[value]` | `[count]` | `[percent]` | `[percent]` | `[percent]` | `[Rejected / Survivor]` |
 | `[C-02]` | `[ID]` | `[ID]` | `[ID]` | `[value]` | `[value]` | `[count]` | `[percent]` | `[percent]` | `[percent]` | `[Rejected / Survivor]` |
 
-## Gate review and ranking
+## 게이트 검토 및 순위
 
-- **Rejected candidates and failed gate(s):** `[combination ID: reason]`
-- **Untouched-evaluation survivor ranking:** `[rank by expectancy, then profit factor, confirming sufficient trades]`
-- **Execution/fill caveats:** `[fees, spread, slippage, funding, gaps, liquidity, or data-quality limitations]`
+- **거절한 후보 및 실패 게이트:** `[조합 ID: 사유]`
+- **미사용 평가 생존자 순위:** `[기대값 순, 이후 Profit factor 순으로 매기며 충분한 사전 선언 거래 수 확인]`
+- **실행/체결 유의사항:** `[수수료, 스프레드, 슬리피지, 펀딩, 갭, 유동성 또는 데이터 품질 한계]`
 
-## Decision — choose exactly one
+## 결정 — 정확히 하나 선택
 
-Mark one and only one checkbox below; leave the other two unchecked.
+아래 체크박스 중 하나만 선택하고 나머지 두 개는 선택하지 않은 상태로 둡니다.
 
-- [ ] `Accept [one combination ID] for the next pre-registered step.`
-- [ ] `Reject the experiment; no candidate passed the gates.`
-- [ ] `Inconclusive; do not promote a candidate and define a new pre-registered experiment.`
+- [ ] `사전 등록한 다음 단계에 [조합 ID 하나]를 승인한다.`
+- [ ] `실험을 거절한다. 어떤 후보도 게이트를 통과하지 못했다.`
+- [ ] `결론 불충분; 후보를 승격하지 않고 새 사전 등록 실험을 정의한다.`
 
-**Decision rationale:** `[state the gate result and survivor ranking; profit cannot override a rejection gate]`
+**결정 근거:** `[게이트 결과와 생존자 순위를 기재; 수익은 거절 게이트를 무시할 수 없음]`

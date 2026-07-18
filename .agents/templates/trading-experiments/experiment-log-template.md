@@ -1,43 +1,43 @@
-# Experiment Log Template
+# 실험 로그 템플릿
 
-Record one entry for every experiment, including rejected candidates. This log records evidence; it does not authorize changing pre-registered rules after the untouched evaluation is observed.
+거절된 후보를 포함해 모든 실험에 대해 항목을 하나 기록합니다. 이 로그는 증거를 기록하며, 미사용 평가를 관측한 뒤 사전 등록 규칙을 변경하도록 허용하지 않습니다.
 
-## Record
+## 기록
 
-- **Experiment name / version:** `[name]`
-- **Log date / author:** `[YYYY-MM-DD, name]`
-- **Idea summary and hypothesis:** `[summary; link/path to strategy-idea template]`
-- **Market-regime record:** `[link/path]`
-- **Development / untouched evaluation ranges:** `[date ranges]`
+- **실험 이름 / 버전:** `[이름]`
+- **로그 날짜 / 작성자:** `[YYYY-MM-DD, 이름]`
+- **아이디어 요약 및 가설:** `[요약; 전략 아이디어 템플릿 링크/경로]`
+- **시장 국면 기록:** `[링크/경로]`
+- **개발 / 미사용 평가 범위:** `[날짜 범위]`
 
-## Selected presets and combinations
+## 선택한 프리셋 및 조합
 
-- **Stop IDs (maximum two):** `[ID(s)]`
-- **Profit-taking IDs (maximum two):** `[ID(s)]`
-- **Scale-in IDs (maximum two):** `[ID(s)]`
-- **Pre-registered combinations (maximum eight):** `[C-01: stop × profit × scale; ...]`
-- **Exact non-risk parameter values/ranges:** `[reference]`
+- **손절 ID(최대 두 개):** `[ID(s)]`
+- **이익 실현 ID(최대 두 개):** `[ID(s)]`
+- **추가 진입 ID(최대 두 개):** `[ID(s)]`
+- **사전 등록 조합(최대 여덟 개):** `[C-01: 손절 × 이익 실현 × 추가 진입; ...]`
+- **정확한 비리스크 파라미터 값/범위:** `[참조]`
 
-## Execution assumptions and controls
+## 실행 가정 및 통제
 
-- **Pairs / venue / market type / timeframes:** `[details]`
-- **Fees, spread, slippage, and funding:** `[assumptions]`
-- **Initial entry allocation:** `5% of account equity per entry.`
-- **Trade allocation:** `At most three entries and 15% total account allocation per trade.`
-- **Aggregate allocation:** `At most two concurrent positions and 30% aggregate account allocation.`
-- **Breakers:** `5% strategy drawdown; 30% daily loss.`
-- **Acceptance gate:** `Evaluation max drawdown greater than 5% is rejected regardless of profit.`
+- **페어 / 거래소 / 시장 유형 / 시간대:** `[세부 정보]`
+- **수수료, 스프레드, 슬리피지 및 펀딩:** `[가정]`
+- **최초 진입 배분:** `진입당 전체 계좌 자산의 5%.`
+- **거래 배분:** `거래당 진입은 최대 세 번, 총 계좌 배분은 15%.`
+- **총 배분:** `동시 포지션은 최대 두 개, 총 계좌 배분은 30%.`
+- **차단기:** `전략 드로다운 5%; 일일 손실 30%.`
+- **승인 게이트:** `평가 최대 드로다운이 5% 초과면 수익과 무관하게 거절.`
 
-## Results and decision trail
+## 결과 및 결정 이력
 
-- **Result links or paths:** `[link/path(s)]`
-- **Artifact rule:** A result path may be recorded, but a generated artifact is never committed.
-- **Rejected candidates:** `[combination ID — failed hard gate or reason]`
-- **Untouched-evaluation survivors and ranking:** `[after fixed risk gates, rank by expectancy, profit factor, and sufficient trade count]`
-- **Chosen candidate:** `[one combination ID, or none]`
-- **Exactly one decision:** `[accept / reject / inconclusive]`
-- **Decision rationale:** `[why, including gate outcomes]`
+- **결과 링크 또는 경로:** `[링크/경로]`
+- **아티팩트 규칙:** 결과 경로는 기록할 수 있지만 생성된 아티팩트는 커밋하지 않습니다.
+- **거절된 후보:** `[조합 ID — 실패한 하드 게이트 또는 사유]`
+- **미사용 평가 생존자 및 순위:** `[고정 리스크 게이트 후 기대값, Profit factor, 충분한 사전 선언 거래 수로 순위]`
+- **선택한 후보:** `[조합 ID 하나 또는 없음]`
+- **정확히 하나의 결정:** `[승인 / 거절 / 결론 불충분]`
+- **결정 근거:** `[게이트 결과를 포함한 이유]`
 
-## Next action
+## 다음 조치
 
-`[single next pre-registered action, such as implement, collect an independent period, or retire the hypothesis]`
+`[구현, 독립 기간 수집 또는 가설 폐기 등 단 하나의 다음 사전 등록 조치]`
