@@ -6,7 +6,7 @@ Use this template before development testing. A missing, ambiguous, or conflicti
 
 - **Experiment name / version:** `[name]`
 - **Author and date pre-registered:** `[name, YYYY-MM-DD]`
-- **Hypothesis:** `[If observable condition X occurs in market scope Y, then entry rule Z is expected to produce the stated risk-adjusted behaviour because ...]`
+- **Hypothesis:** `[If observable condition X occurs in market scope Y, then entry rule Z is expected to produce the stated behaviour within the fixed risk limits because ...]`
 - **Direction:** `[long / short / both with separately stated rules]`
 - **Decision timeframe / informative timeframes:** `[timeframe(s)]`
 
