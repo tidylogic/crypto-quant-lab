@@ -28,7 +28,7 @@ These ceilings remain fixed for every preset and every test. A preset can only m
 | --- | --- |
 | Idea, regime, order trigger, exit, or invalidation is missing, ambiguous, or contradictory | Reject before backtest. |
 | More than two IDs selected in any layer, or more than eight combinations | Reject the experiment definition. |
-| Any candidate breaches an account limit or has acceptance-period max drawdown above **5%** | Reject, regardless of profit. |
+| Any candidate breaches an account limit or has acceptance/evaluation backtest max drawdown above **5%** | Reject, regardless of profit. |
 | Evaluation trade count is below the pre-declared minimum | Reject as insufficient evidence. |
 | Candidate passes all gates | Rank on the untouched evaluation period by expectancy, profit factor, and sufficient trade count. |
 
