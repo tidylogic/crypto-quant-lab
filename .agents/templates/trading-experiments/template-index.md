@@ -2,16 +2,16 @@
 
 이 템플릿으로 알고리즘 트레이딩 아이디어를 범위가 제한되고 감사 가능한 실험으로 전환합니다. 정의된 가설을 비교하기 위한 것이며, 가장 수익성 높은 파라미터를 탐색하도록 허용하지 않습니다.
 
-## 생성기 추가 후 사용
+## 사용자 정의 프리셋 카드 추가
 
-다음 명령으로 입력 초안을 생성합니다.
+다음 명령으로 공용 라이브러리에 한국어 프리셋 카드 초안을 생성합니다.
 
 ```bash
-bash .agents/scripts/create-trading-experiment.sh <experiment-slug>
-# docs/strategy-notes/experiments/<experiment-slug>/
+bash .agents/scripts/create-risk-preset.sh <PRESET-ID>
+# .agents/templates/trading-experiments/risk-presets/<PRESET-ID>.md
 ```
 
-생성된 파일은 입력 초안입니다. 실험을 진행하기 전에 모든 필수 항목을 작성해야 합니다.
+ID는 `STOP-`, `TP-`, `SCALE-` 중 하나로 시작해야 합니다. 생성된 카드는 초안이며, 모든 필수 항목을 채우고 검토한 뒤에만 선택 후보로 사용합니다.
 
 ## 절차
 

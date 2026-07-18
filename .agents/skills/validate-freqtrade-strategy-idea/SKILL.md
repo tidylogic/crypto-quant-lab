@@ -42,14 +42,14 @@ description: Use when a user wants to turn an algorithmic trading idea into a Fr
 
 ## 재사용 가능한 트레이딩 실험 프리셋
 
-재사용 프리셋을 선택하면 먼저 `.agents/templates/trading-experiments/template-index.md`와 연결된 템플릿을 읽습니다. 다음 명령으로 입력 초안을 생성할 수 있습니다.
+재사용 프리셋을 선택하면 먼저 `.agents/templates/trading-experiments/template-index.md`와 연결된 템플릿을 읽습니다. 사용자 정의 프리셋은 다음 명령으로 카드 초안을 생성합니다.
 
 ```bash
-bash .agents/scripts/create-trading-experiment.sh <experiment-slug>
-# docs/strategy-notes/experiments/<experiment-slug>/
+bash .agents/scripts/create-risk-preset.sh <PRESET-ID>
+# .agents/templates/trading-experiments/risk-presets/<PRESET-ID>.md
 ```
 
-생성된 파일은 입력 초안일 뿐이며, 모든 필수 항목을 작성해야 합니다. 전략 아이디어에는 선택한 모든 손절, 이익 실현 및 추가 진입 ID가 명시되어야 합니다. ID가 없거나, 모호하거나, 충돌하거나, 알 수 없으면 완전 계약 게이트에서 실패합니다.
+사용자 정의 ID는 `STOP-`, `TP-`, `SCALE-` 중 하나로 시작해야 합니다. 카드는 모든 필드를 채우고 상태를 `검토 완료`로 바꾸기 전까지 선택할 수 없습니다. 전략 아이디어에는 선택한 모든 손절, 이익 실현 및 추가 진입 ID가 명시되어야 합니다. 사용자 정의 ID는 `risk-presets/<ID>.md` 카드가 존재하고 모든 필수 필드가 채워져 있으며 상태가 `검토 완료`여야 합니다. ID가 없거나, 모호하거나, 충돌하거나, 알 수 없으면 완전 계약 게이트에서 실패합니다.
 
 - 레이어별(손절, 이익 실현, 추가 진입) ID를 두 개 초과로 선택하지 않습니다.
 - 미사용 평가 기간을 보기 전에 허용값을 사전 등록하고 전체 조합을 최대 여덟 개 열거합니다. 평가 결과를 본 뒤 조합을 추가하거나 변경하지 않습니다.
