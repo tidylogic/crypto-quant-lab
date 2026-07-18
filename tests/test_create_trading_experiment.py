@@ -6,6 +6,13 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = REPO_ROOT / ".agents/scripts/create-trading-experiment.sh"
+TEMPLATE_ROOT = REPO_ROOT / ".agents/templates/trading-experiments"
+TEMPLATE_OUTPUT_FILES = {
+    "strategy-idea-template.md": "strategy-idea.md",
+    "market-regime-template.md": "market-regime.md",
+    "backtest-evaluation-template.md": "backtest-evaluation.md",
+    "experiment-log-template.md": "experiment-log.md",
+}
 
 
 class CreateTradingExperimentTests(unittest.TestCase):
@@ -25,14 +32,13 @@ class CreateTradingExperimentTests(unittest.TestCase):
             self.assertEqual(result.returncode, 0, result.stderr)
             self.assertEqual(
                 {path.name for path in target.iterdir()},
-                {
-                    "strategy-idea.md",
-                    "market-regime.md",
-                    "backtest-evaluation.md",
-                    "experiment-log.md",
-                },
+                set(TEMPLATE_OUTPUT_FILES.values()),
             )
-            self.assertIn("전략 아이디어", (target / "strategy-idea.md").read_text())
+            for source_name, output_name in TEMPLATE_OUTPUT_FILES.items():
+                self.assertEqual(
+                    (target / output_name).read_text(),
+                    (TEMPLATE_ROOT / source_name).read_text(),
+                )
 
     def test_rejects_invalid_or_existing_slug_without_overwrite(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -40,11 +46,21 @@ class CreateTradingExperimentTests(unittest.TestCase):
                 self.run_generator("bad/name", "--output-root", tmp).returncode, 0
             )
             self.assertEqual(self.run_generator("demo", "--output-root", tmp).returncode, 0)
-            original = (Path(tmp) / "demo" / "strategy-idea.md").read_text()
+            target = Path(tmp) / "demo"
+            original_files = {
+                output_name: (target / output_name).read_text()
+                for output_name in TEMPLATE_OUTPUT_FILES.values()
+            }
             self.assertNotEqual(
                 self.run_generator("demo", "--output-root", tmp).returncode, 0
             )
-            self.assertEqual(original, (Path(tmp) / "demo" / "strategy-idea.md").read_text())
+            self.assertEqual(
+                original_files,
+                {
+                    output_name: (target / output_name).read_text()
+                    for output_name in TEMPLATE_OUTPUT_FILES.values()
+                },
+            )
 
 
 if __name__ == "__main__":
