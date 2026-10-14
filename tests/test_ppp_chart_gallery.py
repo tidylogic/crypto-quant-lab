@@ -8,6 +8,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 MODULE = ROOT / 'scripts/ppp_chart_gallery.py'
+sys.path.insert(0, str(MODULE.parent))
 
 
 class GalleryTests(unittest.TestCase):

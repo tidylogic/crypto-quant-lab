@@ -26,6 +26,8 @@ Runtime outputs and market data are intentionally not in Git. Check local artifa
 
 ## Chart behavior and deployed service
 
+The existing chart gallery now links to `research.html`: overview, strategies, experiments/results, statistics/figures, Pine view/copy/download and document library. `ppp_chart_gallery.py` regenerates both through `ppp_research_portal.py`. Curated reports, notes, figures/captures and aggregate CSVs are declared in manifest resources; original market data, trade CSVs, logs, profiles and configs remain unavailable. Code-copy uses a fallback on private HTTP, and images open in a zoom dialog. Original chart deep links and mobile journal behavior are preserved.
+
 Initial viewport is about 240 execution candles on desktop / 120 on mobile. The journal includes closed strategy records and marks capital-unexecuted records. Sorting/filtering does not change underlying trade indices. A row selects the exact trade range with an hour's context at each end; it keeps the journal open and does not force page scrolling.
 
 Vertical chart touch scrolls the document to lower panes; horizontal touch pans the time scale. Real-touch browser evidence covers bottom indicators and returning to the still-open journal. Do not restore auto-fold/`scrollIntoView` on row selection or vertical chart touch capture merely to make desktop tests pass.

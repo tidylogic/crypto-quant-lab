@@ -13,6 +13,7 @@
 - 초입 비교: `scripts/ppp_largecap_research.py`, `ppp_largecap_report.py`.
 - 1분 확인 / 기준 주기 손절 비교: `scripts/ppp_support_ladder.py`, `ppp_support_report.py`.
 - 차트 모음: `scripts/ppp_chart_gallery.py`, `scripts/templates/ppp-*.html`, `ppp-chart-trades.js`.
+- 연구 자료실: `scripts/ppp_research_portal.py`, `ppp-research-portal.html`, `ppp-research-document.html`. 기존 생성 명령으로 함께 갱신한다.
 
 Pine 기준형과 Python의 새 지지·저항 실험은 구현 범위가 다르다. 새 지지·저항 실험을 Pine에 포팅한 것으로 표현하지 않는다.
 
@@ -56,11 +57,16 @@ python3 scripts/ppp_chart_gallery.py --serve --host 127.0.0.1 --port 8765
 
 다음 기능을 제공한다.
 
+- 상단 연구 메뉴: 연구 요약, 전략, 실험·결과, 통계·그림, Pine Script, 차트, 자료실.
+- 같은 서버의 `/research.html`에서 설명 문서, 과거 상세 보고서, 통계 그림과 차트 캡처를 탐색한다. 그림을 눌러 확대하고 관련 보고서로 이동할 수 있다.
+- Pine 코드 보기·복사·파일 다운로드, 집계 통계 CSV 다운로드. HTTP 접속에서도 지원되는 브라우저는 코드 복사를 사용할 수 있다.
 - 코인·실험·draft 선택, 한 번에 하나의 차트 로드.
 - 거래소·주기·리스크 방식 선택, 전체 실제 캔들과 보조지표.
 - 거래 목록, 롱·숏 / 수익·손실 필터, 행 선택 시 진입 1시간 전부터 청산 1시간 후까지 확대.
 - 초기 최근 구간 확대: 데스크톱 약 240개, 모바일 약 120개 실행 봉.
 - 거래 선택 시 목록과 페이지 위치 유지. 세로 터치는 페이지 스크롤, 가로 터치는 차트 이동.
+
+자료실은 `docs/strategy-notes/ppp*.md`, PPP Pine와 안내 문서, 지정된 실험 보고서·그림·집계 CSV만 게시한다. 시세 원본·거래 원장·로그·브라우저 프로필·개인 설정은 게시하지 않는다. 원본 파일을 바꾸지 않고 출력 폴더에 사본을 만들며, 보고서의 연결은 게시된 문서·차트·파일로 바꾼다. 새 clone에서는 설명과 Pine가 제공되고, 아직 생성하지 않은 결과는 없는 상태로 표시한다. 초기 영상 관찰·합성 입력 그림은 로컬에 존재하는 경우에만 포함한다.
 
 지속 실행에는 `scripts/ppp-chart-gallery.service`를 사용할 수 있다. 템플릿의 저장소 경로를 실제 checkout에 맞춘 뒤 설치한다. 예시 환경 파일의 호스트 기본값은 loopback이다. Tailscale 공유를 요청받은 경우에만 노드의 실제 Tailscale IP를 로컬 환경 파일에 넣는다. 공용 네트워크 바인딩이나 Funnel은 별도의 공개 범위다.
 

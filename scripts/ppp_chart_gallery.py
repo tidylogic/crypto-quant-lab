@@ -5,12 +5,15 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import mimetypes
 import re
 from datetime import datetime, timezone
 from functools import partial
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import unquote, urlsplit
+
+from ppp_research_portal import build_research
 
 ROOT = Path(__file__).resolve().parents[1]
 CONFIG = re.compile(r'(<script id="configuration" type="application/json">)(.*?)(</script>)', re.S)
@@ -119,6 +122,7 @@ def build_gallery(source_root: Path, output: Path) -> dict:
     charts.sort(key=order)
     manifest = dict(generated_utc=datetime.now(timezone.utc).isoformat(), charts=charts,
                     default_id=charts[0]['id'] if charts else None)
+    manifest['resources'] = build_research(source_root, output, charts)
     template = (ROOT/'scripts/templates/ppp-chart-gallery.html').read_text()
     safe_json = json.dumps(manifest, ensure_ascii=False).replace('<', '\\u003c')
     (output/'index.html').write_text(template.replace('@@CATALOG@@', safe_json))
@@ -136,6 +140,8 @@ def route_path(url: str, output: Path, manifest: dict | None = None) -> Path | N
     name = unquote(urlsplit(url).path)
     routes = {'/': 'index.html', '/index.html': 'index.html', '/manifest.json': 'manifest.json'}
     routes.update({'/'+c['file']: c['file'] for c in manifest['charts']})
+    routes['/research.html'] = 'research.html'
+    routes.update({'/'+r['file']: r['file'] for r in manifest.get('resources', [])})
     relative = routes.get(name)
     if relative is None:
         return None
@@ -162,7 +168,10 @@ class GalleryHandler(BaseHTTPRequestHandler):
             self.send_error(404)
             return
         self.send_response(200)
-        self.send_header('Content-Type', 'application/json; charset=utf-8' if path.suffix=='.json' else 'text/html; charset=utf-8')
+        mime = 'text/plain' if path.suffix=='.pine' else mimetypes.guess_type(path.name)[0] or 'application/octet-stream'
+        if mime.startswith('text/') or mime=='application/json':
+            mime += '; charset=utf-8'
+        self.send_header('Content-Type', mime)
         self.send_header('Content-Length', str(path.stat().st_size))
         self.send_header('Cache-Control', 'no-cache')
         self.send_header('X-Content-Type-Options', 'nosniff')
