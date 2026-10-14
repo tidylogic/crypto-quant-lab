@@ -35,3 +35,8 @@ user_data/*.sqlite*
 
 # Local worktrees
 .worktrees/
+
+# Locally generated PPP reconstruction evidence (source Pine and notes are tracked)
+docs/tradingview/ppp/reference-*.png
+docs/tradingview/ppp/synthetic-comparison.png
+docs/tradingview/ppp/validation.json

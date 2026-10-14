@@ -1,0 +1,19 @@
+[Unit]
+Description=PPP backtest chart gallery on Tailscale
+After=network-online.target
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+# Adjust these two repository paths if the checkout lives elsewhere.
+WorkingDirectory=%h/github/personal/crypto-quant-lab
+Environment=PPP_CHART_HOST=127.0.0.1
+Environment=PPP_CHART_PORT=8765
+EnvironmentFile=-%h/.config/ppp-chart-gallery.env
+ExecStart=/usr/bin/python3 %h/github/personal/crypto-quant-lab/scripts/ppp_chart_gallery.py --serve --host ${PPP_CHART_HOST} --port ${PPP_CHART_PORT}
+Restart=always
+RestartSec=5
+TimeoutStopSec=10
+
+[Install]
+WantedBy=default.target

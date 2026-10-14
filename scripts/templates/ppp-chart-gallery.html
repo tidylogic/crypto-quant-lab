@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; frame-src 'self' file:; img-src data:; connect-src 'none'; base-uri 'none'; object-src 'none'">
+<title>백테스트 차트 모음</title>
+<style>
+:root{color-scheme:light dark;--bg:light-dark(#f5f7fb,#101722);--card:light-dark(#fff,#182131);--ink:light-dark(#182234,#e5ecf6);--muted:light-dark(#657087,#9aaec9);--line:light-dark(#dce3ee,#2e3d53);--blue:light-dark(#235fe5,#78a9ff);--soft:light-dark(#eef4ff,#223958)}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 system-ui,sans-serif;height:100dvh;display:flex;flex-direction:column}button,select,a{font:inherit}button,select{background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:8px;min-height:40px;padding:8px;cursor:pointer}a{color:var(--blue)}button:focus-visible,select:focus-visible,a:focus-visible{outline:3px solid var(--blue);outline-offset:2px}header{padding:15px 22px;border-bottom:1px solid var(--line);background:var(--card);display:flex;align-items:center;justify-content:space-between;gap:12px}h1{font-size:21px;margin:0}header p{margin:2px 0;color:var(--muted);font-size:12px}.layout{flex:1;min-height:0;display:grid;grid-template-columns:252px minmax(0,1fr);gap:16px;padding:16px}aside{overflow:auto;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px}aside h2{font-size:12px;font-weight:600;color:var(--muted);margin:0 0 8px}#coins{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:20px}#coins button{min-width:61px;flex:1}#coins button[aria-pressed=true]{background:var(--soft);color:var(--blue);border-color:var(--blue);font-weight:700}.field{display:block;margin:14px 0}.field>span{display:block;font-size:12px;color:var(--muted);margin-bottom:5px}select{width:100%;min-width:0}.toggle{display:flex;align-items:center;gap:7px;margin:16px 0;font-size:13px}.toggle input{width:16px;height:16px;accent-color:var(--blue)}.note{color:var(--muted);font-size:12px;line-height:1.6;margin-top:20px}#count{margin-top:20px;padding-top:12px;border-top:1px solid var(--line);color:var(--muted);font-size:12px}.viewer{display:flex;flex-direction:column;min-width:0;min-height:0;background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden}.viewer-head{padding:12px 16px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:12px}.viewer-head h2{font-size:16px;margin:0}#subtitle{color:var(--muted);font-size:12px}#badge{color:var(--blue);background:var(--soft);border-radius:4px;padding:2px 6px;font-size:11px;margin-left:7px}#status{font-size:12px;color:var(--muted);margin:0 16px;padding:5px 0;min-height:25px}#frame-slot{flex:1;min-height:0;position:relative}iframe{display:block;border:0;width:100%;height:100%;background:var(--card)}#empty{padding:40px;text-align:center;color:var(--muted)}.viewer-head a{white-space:nowrap;font-size:12px}#reload{font-size:12px;white-space:nowrap}.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+@media(max-width:760px){header{padding:10px 12px}h1{font-size:18px}header p{font-size:11px}.layout{grid-template-columns:minmax(0,1fr);grid-template-rows:auto minmax(0,1fr);gap:8px;padding:8px}aside{padding:10px;overflow:visible;display:grid;grid-template-columns:1fr 1fr;gap:8px}aside h2,.note,#count{display:none}#coins{grid-column:1/-1;margin:0;gap:5px}#coins button{min-width:38px;padding:5px;font-size:12px;min-height:34px}.field{margin:0}.field>span{font-size:11px}.toggle{grid-column:1/-1;margin:0;font-size:12px}.viewer-head{padding:9px 10px}.viewer-head h2{font-size:14px}#subtitle{font-size:11px}#status{margin:0 10px;font-size:11px}.viewer-head a{font-size:11px}select{font-size:12px;padding:7px}#reload{min-height:34px}}
+</style>
+</head>
+<body>
+<header><div><h1>백테스트 차트 모음</h1><p>전체 캔들 · 보조지표 · 진입과 청산 · 계좌 변화</p></div><button id="reload" type="button">화면 새로고침</button></header>
+<div class="layout">
+<aside aria-label="차트 선택">
+<h2>코인</h2><div id="coins" role="group" aria-label="코인 선택"></div>
+<label class="field"><span>실험 종류</span><select id="group" aria-label="실험 종류"></select></label>
+<label class="field"><span>전략 / 기록</span><select id="chart" aria-label="전략과 기록"></select></label>
+<label class="toggle"><input type="checkbox" id="draft">보관된 draft 포함</label>
+<p class="note">거래소·주기와 진입·손절 방식은 차트 안에서 선택하세요. 거래 목록을 펼쳐 행을 누르면 해당 거래 구간으로 확대합니다. 차트를 클릭한 뒤 판단 내용을 펼치면 진입·미진입·청산 이유를 볼 수 있습니다.</p>
+<p class="note">처음에는 최근 구간을 확대합니다. 날짜 탐색이나 전체 기간 보기로 다른 구간을 검토할 수 있습니다.</p>
+<p class="note">최신 실험과 기존 기준형을 함께 보관합니다. MEXC의 짧은 자료 구간은 차트에서 별도로 표시합니다.</p>
+<div id="count"></div>
+</aside>
+<main class="viewer">
+<div class="viewer-head"><div><h2><span id="title">차트 선택</span><span id="badge"></span></h2><div id="subtitle"></div></div><a id="open" target="_blank" rel="noopener">크게 열기 ↗</a></div>
+<p id="status" role="status" aria-live="polite"></p>
+<div id="frame-slot"><p id="empty">차트를 선택해 주세요.</p></div>
+</main>
+</div>
+<script id="catalog" type="application/json">@@CATALOG@@</script>
+<script>
+(()=>{'use strict';const catalog=JSON.parse(document.getElementById('catalog').textContent),el=id=>document.getElementById(id),q=new URLSearchParams(location.hash.slice(1));
+let selected=catalog.charts.find(c=>c.id===q.get('chart'))||catalog.charts.find(c=>c.id===catalog.default_id),asset=selected?.asset,group=selected?.group,frame=null,loadTimer=null;
+let market=q.get('market'),profile=q.get('profile');const memory=new Map();if(selected&&market&&profile)memory.set(selected.id,{market,profile});
+el('draft').checked=selected?.status==='draft'||q.get('draft')==='1';
+const available=()=>catalog.charts.filter(c=>el('draft').checked||c.status!=='draft');
+function remember(){const state=selected?memory.get(selected.id):null;const h=new URLSearchParams();if(selected)h.set('chart',selected.id);if(state){h.set('market',state.market);h.set('profile',state.profile);}if(el('draft').checked)h.set('draft','1');history.replaceState(null,'','#'+h.toString());}
+function render(){const all=available();const coins=[...new Set(all.map(c=>c.asset))];if(!coins.includes(asset))asset=coins[0];
+el('coins').replaceChildren(...coins.map(a=>{const b=document.createElement('button');b.type='button';b.textContent=a;b.setAttribute('aria-pressed',String(a===asset));b.onclick=()=>{asset=a;selected=null;render();};return b;}));
+const cases=all.filter(c=>c.asset===asset),groups=[...new Set(cases.map(c=>c.group))];if(!groups.includes(group))group=groups[0];
+el('group').replaceChildren(...groups.map(g=>new Option(cases.find(c=>c.group===g).group_name,g)));el('group').value=group||'';
+const options=cases.filter(c=>c.group===group);if(!selected||!options.some(c=>c.id===selected.id))selected=options[0];
+el('chart').replaceChildren(...options.map(c=>new Option(c.name+(c.status==='draft'?' · draft':''),c.id)));el('chart').value=selected?.id||'';
+el('count').textContent=catalog.charts.length+'개 차트 기록 · '+new Set(catalog.charts.map(c=>c.asset)).size+'개 코인';show();}
+function show(){clearTimeout(loadTimer);if(!selected){frame=null;el('frame-slot').replaceChildren(Object.assign(document.createElement('p'),{id:'empty',textContent:'선택 가능한 차트가 없습니다.'}));el('title').textContent='차트 없음';el('subtitle').textContent=el('badge').textContent=el('status').textContent='';el('open').removeAttribute('href');return;}
+el('title').textContent=selected.asset+' · '+selected.name;el('badge').textContent=selected.status==='draft'?'draft':selected.group.startsWith('ppp-support-')?'기준형 + 실험':'기준형 + 연구';el('subtitle').textContent=selected.group_name+' · '+selected.group.match(/\d{4}-\d{2}-\d{2}/)?.[0];
+const state=memory.get(selected.id)||{market:selected.default_market,profile:selected.default_profile};const hash=new URLSearchParams(state).toString(),src=selected.file+'#'+hash;
+el('open').href=src;el('status').textContent='차트 불러오는 중…';frame=document.createElement('iframe');frame.title=selected.asset+' 백테스트 차트';frame.setAttribute('sandbox','allow-scripts');frame.referrerPolicy='no-referrer';frame.src=src;el('frame-slot').replaceChildren(frame);remember();
+loadTimer=setTimeout(()=>{el('status').textContent='불러오기가 오래 걸립니다. 새로고침하거나 크게 열기를 이용해 주세요.';},30000);}
+window.addEventListener('message',e=>{const d=e.data;if(!frame||e.source!==frame.contentWindow||d?.type!=='ppp-chart-ready'||d.asset!==selected.asset)return;
+clearTimeout(loadTimer);memory.set(selected.id,{market:d.market,profile:d.profile});el('status').textContent=d.status+' · '+Number(d.candles).toLocaleString('ko-KR')+'개 봉';el('badge').textContent=d.status.startsWith('실험')?'실험':selected.status==='draft'?'draft':'기준형';el('open').href=selected.file+'#'+new URLSearchParams({market:d.market,profile:d.profile});remember();});
+el('group').onchange=()=>{group=el('group').value;selected=null;render();};el('chart').onchange=()=>{selected=catalog.charts.find(c=>c.id===el('chart').value);show();};el('draft').onchange=()=>render();el('reload').onclick=()=>location.reload();
+window.__pppGalleryQA={get selected(){return selected;},get frame(){return frame;},catalog};render();})();
+</script>
+</body>
+</html>

@@ -1,0 +1,60 @@
+//@version=6
+// Independent hypothesis based on public video qZzJzHwk0Tk; not the original PPP formula.
+indicator("PPP Prototype A - Stoch RSI", shorttitle="PPP A", overlay=false, precision=2, max_bars_back=2000)
+
+src = input.source(close, "RSI source", group="Calculation")
+rsiLength = input.int(14, "RSI length", minval=2, maxval=500, group="Calculation")
+rangeLength = input.int(14, "Stochastic length", minval=2, maxval=500, group="Calculation")
+mainLength = input.int(3, "Main smoothing", minval=1, maxval=500, group="Calculation")
+signalLength = input.int(3, "Signal smoothing", minval=1, maxval=500, group="Calculation")
+averageType = input.string("SMA", "Smoothing type", options=["SMA", "EMA", "RMA"], group="Calculation")
+
+confirmedOnly = input.bool(true, "Confirm crosses at bar close", tooltip="Off: crosses may appear and disappear within the open bar. Lines always update within the open bar.", group="Signals")
+extremeOnly = input.bool(false, "Only crosses near 20 / 80", tooltip="Up: either line is at or below 20. Down: either line is at or above 80. This is an optional experimental filter.", group="Signals")
+showCrosses = input.bool(true, "Show cross markers", group="Display")
+showRibbon = input.bool(true, "Fill between lines", group="Display")
+
+f_smooth(float value, simple int length, simple string method) =>
+    switch method
+        "EMA" => ta.ema(value, length)
+        "RMA" => ta.rma(value, length)
+        => ta.sma(value, length)
+
+f_percent(float value, float floorValue, float ceilingValue) =>
+    float span = ceilingValue - floorValue
+    na(value) or na(span) ? na : span <= 0.0 ? 50.0 : math.max(0.0, math.min(100.0, 100.0 * (value - floorValue) / span))
+
+// Wilder RSI, with an explicit neutral result for an entirely flat window.
+// The two RMA calls run on every bar, including warm-up bars.
+delta = ta.change(src)
+gain = ta.rma(math.max(delta, 0.0), rsiLength)
+loss = ta.rma(math.max(-delta, 0.0), rsiLength)
+rsiValue = na(gain) or na(loss) ? na : loss == 0.0 ? (gain == 0.0 ? 50.0 : 100.0) : 100.0 - 100.0 / (1.0 + gain / loss)
+rsiFloor = ta.lowest(rsiValue, rangeLength)
+rsiCeiling = ta.highest(rsiValue, rangeLength)
+raw = not na(rsiValue[rangeLength - 1]) ? f_percent(rsiValue, rsiFloor, rsiCeiling) : na
+mainLine = f_smooth(raw, mainLength, averageType)
+signalLine = f_smooth(mainLine, signalLength, averageType)
+
+// Evaluate both cross functions on every bar, outside the conditional gates.
+crossUp = ta.crossover(mainLine, signalLine)
+crossDown = ta.crossunder(mainLine, signalLine)
+ready = not na(mainLine) and not na(signalLine)
+allowBar = not confirmedOnly or barstate.isconfirmed
+goldenCross = ready and allowBar and crossUp and (not extremeOnly or math.min(mainLine, signalLine) <= 20.0)
+deadCross = ready and allowBar and crossDown and (not extremeOnly or math.max(mainLine, signalLine) >= 80.0)
+
+hline(100, "100", color=color.new(color.gray, 65), linestyle=hline.style_dotted)
+upper = hline(80, "80", color=color.new(color.fuchsia, 35), linestyle=hline.style_dotted)
+hline(50, "50", color=color.new(color.fuchsia, 60))
+lower = hline(20, "20", color=color.new(color.fuchsia, 35), linestyle=hline.style_dotted)
+hline(0, "0", color=color.new(color.gray, 65), linestyle=hline.style_dotted)
+fill(upper, lower, color=color.new(color.purple, 96), title="20-80 zone")
+mainPlot = plot(mainLine, "Main", color=color.white, linewidth=2)
+signalPlot = plot(signalLine, "Signal", color=color.rgb(255, 70, 180), linewidth=2)
+fill(mainPlot, signalPlot, color=showRibbon ? (mainLine >= signalLine ? color.new(color.lime, 72) : color.new(color.fuchsia, 72)) : na, title="Main-signal ribbon")
+plotshape(showCrosses and goldenCross ? mainLine : na, title="Golden cross", style=shape.triangleup, location=location.absolute, color=color.lime, size=size.tiny)
+plotshape(showCrosses and deadCross ? mainLine : na, title="Dead cross", style=shape.triangledown, location=location.absolute, color=color.red, size=size.tiny)
+
+alertcondition(goldenCross, title="PPP A golden cross", message="PPP A Stoch RSI: golden cross on {{ticker}} {{interval}}")
+alertcondition(deadCross, title="PPP A dead cross", message="PPP A Stoch RSI: dead cross on {{ticker}} {{interval}}")

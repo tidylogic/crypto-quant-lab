@@ -1,0 +1,15 @@
+{
+  "active_code": "G",
+  "strategies": {
+    "A": {"name": "Stoch RSI 시안", "status": "draft"},
+    "B": {"name": "일반 Stochastic 시안", "status": "draft"},
+    "C": {"name": "이중 Stochastic 기준 시안", "status": "draft"},
+    "D": {"name": "ADX·DMI 결합 시안", "status": "draft"},
+    "E": {"name": "MACD 모멘텀 결합 시안", "status": "draft"},
+    "F": {"name": "MFI 결합 시안", "status": "draft"},
+    "G": {"name": "추세·거래량 전략", "status": "active"},
+    "H": {"name": "MACD·RSI 결합 시안", "status": "draft"}
+  },
+  "archive": "user_data/backtest_results/ppp-selective-2026-10-14/ppp-research-report.html",
+  "policy": "Keep every historical report, journal and Pine source; research the active strategy and its variations by default. Legacy codes remain for reproducibility, not as the primary display names."
+}

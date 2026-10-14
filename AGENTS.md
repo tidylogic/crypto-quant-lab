@@ -30,3 +30,8 @@
 - Avoid committing exchange secrets or live trading credentials.
 - Do not treat backtest profit alone as proof of a good strategy. Always consider trade count, drawdown, fees, slippage, and overfitting risk.
 - For PR automation, strategy changes should be detectable from paths under `user_data/strategies`, `user_data/freqaimodels`, and relevant config/script files.
+
+## PPP Research Continuation
+
+- For PPP / 추세·거래량 work, read `.agents/rules/ppp-research-continuation.md` and the linked research guide before changing the active baseline or rerunning historical grids.
+- Use `.agents/skills/ppp-strategy-research` for PPP indicator/backtest work and `.agents/skills/ppp-chart-review` for the chart gallery, persistent server, and mobile interaction verification.

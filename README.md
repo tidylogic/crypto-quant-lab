@@ -71,6 +71,16 @@ For the full step-by-step process, use [docs/strategy-workflow.md](docs/strategy
 4. Open a PR. The PR workflow detects relevant strategy/config changes, runs a Freqtrade backtest with a closed timerange, summarizes the result, and writes a PR comment.
 5. Promote only after backtest review and dry-run observation.
 
+## PPP indicator research and chart review
+
+The [PPP research guide](docs/research/ppp/README.ko.md) covers Pine v6 indicators,
+reproducible Python backtests, the chart gallery/server, and continuation in a new
+agent session. Read the [current findings](docs/strategy-notes/ppp-research-findings.md)
+before changing the active baseline. Reusable project skills live under `.agents/skills`.
+
+Market data, generated reports, browser profiles, and deployment settings stay local;
+a fresh clone needs data/results before it can display backtest charts.
+
 ## Notes
 
 - Keep strategies in `user_data/strategies`.

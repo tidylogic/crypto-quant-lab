@@ -1,0 +1,88 @@
+//@version=6
+// Research baseline, formerly G. Original file remains preserved. Entry markers are candidates, not a position-aware strategy.
+indicator("추세·거래량 전략 · 기준형", shorttitle="추세·거래량", overlay=false, precision=2, max_bars_back=2000)
+
+priceLength = input.int(14, "First: price range length", minval=2, maxval=500, group="Calculation")
+firstLength = input.int(5, "First: EMA smoothing", minval=1, maxval=500, group="Calculation")
+secondLength = input.int(14, "Second: oscillator range length", minval=2, maxval=500, group="Calculation")
+mainLength = input.int(3, "Main EMA smoothing", minval=1, maxval=500, group="Calculation")
+signalLength = input.int(3, "Signal EMA smoothing", minval=1, maxval=500, group="Calculation")
+mfiLength = input.int(14, "MFI length (HLC3)", minval=2, maxval=500, group="Entry filter")
+mfiThreshold = input.float(50.0, "MFI midpoint", minval=0.0, maxval=100.0, group="Entry filter")
+volumeLength = input.int(20, "Previous bars volume baseline", minval=1, maxval=500, group="Entry filter")
+relativeVolumeThreshold = input.float(1.2, "Minimum relative volume", minval=0.0, group="Entry filter")
+smaFastLength = input.int(20, "Fast SMA (20)", minval=1, maxval=500, group="Trend alignment")
+smaMediumLength = input.int(50, "Medium SMA (50)", minval=1, maxval=500, group="Trend alignment")
+smaSlowLength = input.int(100, "Slow SMA (100)", minval=1, maxval=500, group="Trend alignment")
+smaTrendLength = input.int(200, "Trend SMA (200)", minval=1, maxval=500, group="Trend alignment")
+confirmedOnly = input.bool(true, "Confirm signals at bar close", tooltip="Lines always update intrabar. Off: markers and alerts can change before the bar closes.", group="Signals")
+showCrosses = input.bool(true, "Show qualified entry triangles", group="Display")
+showRawCrosses = input.bool(false, "Show raw cross circles", tooltip="Raw up cross: short-exit trigger. Raw down cross: long-exit trigger. These triggers do not track a position.", group="Display")
+showRibbon = input.bool(true, "Fill between lines", group="Display")
+
+f_percent(float value, float floorValue, float ceilingValue) =>
+    float span = ceilingValue - floorValue
+    na(value) or na(span) ? na : span <= 0.0 ? 50.0 : math.max(0.0, math.min(100.0, 100.0 * (value - floorValue) / span))
+
+priceFloor = ta.lowest(low, priceLength)
+priceCeiling = ta.highest(high, priceLength)
+// Require a full price window and then a full first-oscillator window.
+firstRaw = not na(close[priceLength - 1]) ? f_percent(close, priceFloor, priceCeiling) : na
+firstSmooth = ta.ema(firstRaw, firstLength)
+oscillatorFloor = ta.lowest(firstSmooth, secondLength)
+oscillatorCeiling = ta.highest(firstSmooth, secondLength)
+secondRaw = not na(firstSmooth[secondLength - 1]) ? f_percent(firstSmooth, oscillatorFloor, oscillatorCeiling) : na
+mainLine = ta.ema(secondRaw, mainLength)
+signalLine = ta.ema(mainLine, signalLength)
+
+mfi = ta.mfi(hlc3, mfiLength)
+// Baseline excludes the current bar: the previous 20 completed bars by default.
+volumeBaseline = ta.sma(volume[1], volumeLength)
+relativeVolume = not na(volumeBaseline) and volumeBaseline > 0.0 ? volume / volumeBaseline : na
+volumePass = relativeVolume >= relativeVolumeThreshold
+longFilter = mfi > mfiThreshold and volumePass
+shortFilter = mfi < mfiThreshold and volumePass
+
+// Every stateful time-series function, including raw crosses, runs on every bar.
+sma20 = ta.sma(close, smaFastLength)
+sma50 = ta.sma(close, smaMediumLength)
+sma100 = ta.sma(close, smaSlowLength)
+sma200 = ta.sma(close, smaTrendLength)
+longAligned = sma20 > sma50 and sma50 > sma100 and sma100 > sma200
+shortAligned = sma20 < sma50 and sma50 < sma100 and sma100 < sma200
+crossUp = ta.crossover(mainLine, signalLine)
+crossDown = ta.crossunder(mainLine, signalLine)
+ready = not na(mainLine) and not na(signalLine)
+allowBar = not confirmedOnly or barstate.isconfirmed
+// Exit triggers deliberately ignore every entry filter and do not infer a position.
+shortExit = ready and allowBar and crossUp
+longExit = ready and allowBar and crossDown
+longEntry = shortExit and longAligned and longFilter
+shortEntry = longExit and shortAligned and shortFilter
+
+hline(100, "100", color=color.new(color.gray, 65), linestyle=hline.style_dotted)
+upper = hline(80, "80", color=color.new(color.fuchsia, 35), linestyle=hline.style_dotted)
+hline(50, "50", color=color.new(color.fuchsia, 60))
+lower = hline(20, "20", color=color.new(color.fuchsia, 35), linestyle=hline.style_dotted)
+hline(0, "0", color=color.new(color.gray, 65), linestyle=hline.style_dotted)
+fill(upper, lower, color=color.new(color.purple, 96), title="20-80 zone")
+mainPlot = plot(mainLine, "Main", color=color.white, linewidth=2)
+signalPlot = plot(signalLine, "Signal", color=color.rgb(255, 70, 180), linewidth=2)
+fill(mainPlot, signalPlot, color=showRibbon ? (mainLine >= signalLine ? color.new(color.lime, 72) : color.new(color.fuchsia, 72)) : na, title="Main-signal ribbon")
+plotshape(showCrosses and longEntry ? mainLine : na, title="Long entry", style=shape.triangleup, location=location.absolute, color=color.lime, size=size.tiny)
+plotshape(showCrosses and shortEntry ? mainLine : na, title="Short entry", style=shape.triangledown, location=location.absolute, color=color.red, size=size.tiny)
+plotshape(showRawCrosses and shortExit ? mainLine : na, title="Raw up cross", style=shape.circle, location=location.absolute, color=color.gray, size=size.tiny)
+plotshape(showRawCrosses and longExit ? mainLine : na, title="Raw down cross", style=shape.circle, location=location.absolute, color=color.gray, size=size.tiny)
+// Price and secondary-filter values remain in the Data Window only.
+plot(sma20, "SMA 20", display=display.data_window)
+plot(sma50, "SMA 50", display=display.data_window)
+plot(sma100, "SMA 100", display=display.data_window)
+plot(sma200, "SMA 200", display=display.data_window)
+plot(mfi, "MFI", display=display.data_window)
+plot(relativeVolume, "Relative volume", display=display.data_window)
+plot(volumeBaseline, "Previous volume baseline", display=display.data_window)
+
+alertcondition(longEntry, title="추세·거래량 qualified long entry", message="추세·거래량: qualified long entry signal on {{ticker}} {{interval}}")
+alertcondition(shortEntry, title="추세·거래량 qualified short entry", message="추세·거래량: qualified short entry signal on {{ticker}} {{interval}}")
+alertcondition(shortExit, title="추세·거래량 short exit: raw up cross", message="추세·거래량: SHORT EXIT TRIGGER from raw main/signal up cross on {{ticker}} {{interval}}; entry filters do not apply")
+alertcondition(longExit, title="추세·거래량 long exit: raw down cross", message="추세·거래량: LONG EXIT TRIGGER from raw main/signal down cross on {{ticker}} {{interval}}; entry filters do not apply")
