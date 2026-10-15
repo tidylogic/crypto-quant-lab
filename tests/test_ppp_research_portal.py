@@ -88,6 +88,15 @@ class ResearchPortalTests(unittest.TestCase):
         self.assertIn('href="../research.html#experiments"', text)
         self.assertIn('<h1>Legacy report</h1>', text)
 
+    def test_sma_entry_comparison_report_and_aggregate_csv_are_available(self):
+        folder=self.source/'ppp-sma-entry-2026-10-15';folder.mkdir()
+        (folder/'index.html').write_text('<html><body>SMA comparison</body></html>')
+        (folder/'aggregate.csv').write_text('sma_set,win_rate_pct\n30,40\n')
+        manifest=gallery.build_gallery(self.source,self.out)
+        published={r['source'] for r in manifest['resources']}
+        self.assertIn('ppp-sma-entry-2026-10-15/index.html',published)
+        self.assertIn('ppp-sma-entry-2026-10-15/aggregate.csv',published)
+
 
 if __name__ == '__main__':
     unittest.main()

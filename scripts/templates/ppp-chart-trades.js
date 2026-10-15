@@ -11,7 +11,8 @@ const time=t=>Number.isFinite(t)?formatter.format(new Date(t*1000)):'—';
 const number=(n,d=6)=>Number.isFinite(n)?n.toLocaleString('ko-KR',{maximumFractionDigits:d}):'—';
 const percent=n=>Number.isFinite(n)?number(n,2)+'%':'—';
 const reasons={opposite_cross:'반대 지표 교차',sma20:'SMA20 종가 이탈',sma50:'SMA50 종가 이탈',entry_candle:'진입 봉 고·저점 이탈',atr_1_5:'ATR × 1.5 손절',break_even:'본전 기준 이탈',S2:'첫 진입 봉 1% 가격 손절'};
-for(const n of [20,50,100,200]){reasons['nearest_ma'+n]='최근접 SMA'+n+' 보호 실패';reasons['support_ma'+n]='진입 근거 SMA'+n+' 보호 실패';}
+const periods=JSON.parse(el('configuration').textContent).ma_periods||[20,50,100,200];
+for(const n of periods){reasons['sma'+n]='SMA'+n+' 종가 이탈';reasons['nearest_ma'+n]='최근접 SMA'+n+' 보호 실패';reasons['support_ma'+n]='진입 근거 SMA'+n+' 보호 실패';}
 let seenChart=null,selected=null,records=[];
 function highlight(){for(const tr of journal.querySelectorAll('tbody tr[data-trade-index]'))tr.setAttribute('aria-selected',String(tr.dataset.tradeIndex===selected));}
 function choose(record){

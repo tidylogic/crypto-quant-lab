@@ -10,6 +10,7 @@ from urllib.parse import unquote, urlsplit
 
 ROOT = Path(__file__).resolve().parents[1]
 STUDIES = {
+    'ppp-sma-entry': ('SMA30·60·120·240 / 두 진입 방식 비교', '추세·거래량 G의 기존·새 SMA와 즉시 진입·1분 지지 확인 진입을 비교합니다. 두 방식의 일반 청산은 기준 봉의 두 번째 SMA 실패 또는 반대 교차로 같습니다.', 'ppp-sma-entry-comparison.md'),
     'ppp-support': ('지지·저항 확인 / 손절 주기 비교', '신호 주기의 20→50→100→200 지지·저항을 1분봉으로 확인합니다. 손절은 1분 마감과 신호 주기 마감을 비교합니다. 기존 기준형을 함께 보존합니다.', 'ppp-support-ladder.md'),
     'ppp-largecap': ('진입 시점 개선 연구', 'BTC·ETH·BNB·SOL·XRP와 WLD·ZEC에서 초입 진입과 이격 제한을 비교했습니다. T2-R4는 공통성·비용 기준을 통과하지 못한 실험형입니다.', 'ppp-largecap-entry-refinement.md'),
     'ppp-wld-s2': ('WLD · ZEC 고수익 기준형 이전', 'ZEC의 G/R2+S2 조건을 WLD에 그대로 적용한 비교입니다. WLD에 맞춘 재최적화 결과와 구분합니다.', 'ppp-asset-research.md'),
@@ -22,6 +23,8 @@ STUDIES = {
     'ppp': ('PPP 시안 A–C', '영상의 0–100 본선·시그널선에서 추론한 Stoch RSI·Stochastic·이중 Stochastic 시안입니다. 원본 계산식이 입증된 것은 아닙니다.', 'ppp-sma-alignment.md'),
 }
 FIGURES = {
+    'sma-entry-win-payoff': ('SMA 세트·진입 방식 · 승률·손익비·PF', '동일 Binance6개월에서 기존20세트와 새30세트, 즉시·지지 확인 진입을 비교한 히트맵입니다.'),
+    'sma-entry-capital-drawdown': ('SMA 세트·진입 방식 · 잔고·낙폭', '각 조합은 독립 $1000·10배 계좌입니다. 잔고 색은 로그 척도이며 표기 숫자는 종료 자산입니다.'),
     'reference-06m48s': ('PPP 영상 · 6분 48초 관찰 화면', '초기 지표 추론에 사용한 영상 화면입니다. 원본 지표의 계산식이 입증된 것은 아닙니다.'),
     'synthetic-comparison': ('PPP 시안 · 합성 입력 비교', '초기 세 시안의 형태를 합성 가격으로 비교한 그림입니다. 실제 코인 수익률과 구분합니다.'),
     'comparison-6m': ('6개월 보조지표 조합 비교', '코인·주기·조합별 성과를 비교한 통계 그림입니다.'),
@@ -36,7 +39,7 @@ FIGURES = {
 }
 REPORT_NAMES = {'index.html', 'draft-history.html', 'ppp-research-report.html',
                 'entry-diagnostics-chart.html', 'entry-diagnostics-full-chart.html', 'streak-chart-preview.html'}
-SUMMARY_NAMES = {'summary.csv', 'capital-10x.csv', 'training.csv', 'validation.csv', 'diagnostics.csv', 'loss-streaks-all.csv'}
+SUMMARY_NAMES = {'summary.csv', 'aggregate.csv', 'capital-10x.csv', 'training.csv', 'validation.csv', 'diagnostics.csv', 'loss-streaks-all.csv'}
 
 
 def study_info(group):
@@ -141,7 +144,7 @@ def build_research(source_root, output, charts):
                  description=description)
     groups = []
     for folder in sorted(source_root.glob('ppp-*'), reverse=True):
-        if not folder.is_dir() or folder.is_symlink() or folder.resolve()==output.resolve() or re.fullmatch(r'ppp-(?:risk-eth|risk|combinations|support|largecap|selective|drawdown|wld-s2|wld)?-?\d{4}-\d{2}-\d{2}', folder.name) is None:
+        if not folder.is_dir() or folder.is_symlink() or folder.resolve()==output.resolve() or re.fullmatch(r'ppp-(?:sma-entry|risk-eth|risk|combinations|support|largecap|selective|drawdown|wld-s2|wld)?-?\d{4}-\d{2}-\d{2}', folder.name) is None:
             continue
         name, description, note = study_info(folder.name)
         groups.append(dict(id=folder.name, title=name, description=description, note=note))

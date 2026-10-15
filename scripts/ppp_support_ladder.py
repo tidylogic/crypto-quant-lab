@@ -28,17 +28,23 @@ VARIANTS=[dict(id='B0',base='B0',stop_clock='signal',label=CONFIGS['B0']['label'
     for base in ('N0','W0','W1','R0','R1') for clock in ('minute','signal')]
 
 
-def prepare(minutes,parent,start,end,features=None):
+def prepare(minutes,parent,start,end,features=None,*,levels=LEVELS):
     """Each minute close can see only parent candles closed by that instant."""
-    f=features if features is not None else build_features(parent);g=model_signals('G',f);rf=risk_features(parent)
+    levels=tuple(levels)
+    if len(levels)!=4 or any(not isinstance(n,int) or n<1 for n in levels) or any(a>=b for a,b in zip(levels,levels[1:])):
+        raise ValueError('Choose four increasing SMA periods')
+    f=features if features is not None else build_features(parent)
+    q=lambda v:np.round(v,9)
+    parent_mas=np.column_stack([q(smooth(parent.close,n)) for n in levels])
+    f=dict(f,bull=np.all(np.diff(parent_mas,axis=1)<0,axis=1),bear=np.all(np.diff(parent_mas,axis=1)>0,axis=1))
+    g=model_signals('G',f);rf=risk_features(parent)
     take=(minutes.timestamp>=start)&(minutes.timestamp<end);b=minutes.subset(take)
     if len(b.timestamp)==0 or np.any(np.diff(b.timestamp)!=60) or b.timestamp[-1]+60!=end:raise ValueError('Incomplete minute execution coverage')
     close_time=b.timestamp+60;k=np.searchsorted(parent.timestamp+parent.seconds,close_time,side='right')-1
-    if (k<200).any():raise ValueError('Unavailable confirmed parent warmup')
+    if (k<max(levels)).any():raise ValueError('Unavailable confirmed parent warmup')
     event=(parent.timestamp[k]+parent.seconds==close_time)&(parent.timestamp[k]>=start)
-    q=lambda v:np.round(v,9)
-    mas=np.column_stack([q(smooth(parent.close,n))[k] for n in LEVELS]);atr=rf['atr'][k]
-    d=dict(parent_seconds=parent.seconds,mas=mas,atr=atr,bull=f['bull'][k],bear=f['bear'][k],
+    mas=parent_mas[k];atr=rf['atr'][k]
+    d=dict(parent_seconds=parent.seconds,ma_periods=levels,mas=mas,atr=atr,bull=f['bull'][k],bear=f['bear'][k],
            source_long=event&g['long_entry'][k],source_short=event&g['short_entry'][k],
            up=event&g['up'][k],down=event&g['down'][k],parent_event=event,source_time=parent.timestamp[k],
            main=f['main_c'][k],signal=f['signal_c'][k],mfi=f['mfi'][k],rvol=f['rvol'][k],parent_index=k)
@@ -48,8 +54,10 @@ def prepare(minutes,parent,start,end,features=None):
     return b,d
 
 
-def simulate_ladder(b,d,variant,*,end,fee=.0002,stop_slippage=0.,trace=False,risk_seconds=60):
-    cfg=CONFIGS[variant];n=len(b.timestamp);step=int(d['parent_seconds']);positions=[];counts=Counter()
+def simulate_ladder(b,d,variant,*,end,fee=.0002,stop_slippage=0.,trace=False,risk_seconds=60,config=None):
+    cfg=CONFIGS[variant] if config is None else config
+    levels=d.get('ma_periods',LEVELS)
+    n=len(b.timestamp);step=int(d['parent_seconds']);positions=[];counts=Counter()
     p=None;pending=None;exit_order=None;entry_order=None;retry={1:(0,0),-1:(0,0)}
     masks=np.array(d['base_bits'],dtype=np.int32,copy=True) if trace else None
     stages=np.full(n,-1,np.int8) if trace else None;margins=np.zeros(n) if trace else None
@@ -86,7 +94,7 @@ def simulate_ladder(b,d,variant,*,end,fee=.0002,stop_slippage=0.,trace=False,ris
                    parent_signal_time=order['source_time'],setup_available_time=order['source_available'],tolerance=order['margin'],
                    protected_stop=order['level']-direction*order['margin'],guard_end=(time//step+1)*step,
                    break_even_armed=False,original_net_return=None,stop_triggered=False,legs=[],remaining_fraction=1.)
-            pending=None;counts['entry_ma'+str(LEVELS[idx])]+=1
+            pending=None;counts['entry_ma'+str(levels[idx])]+=1
         stopped=False;stop_context=None
         if p is not None and time<p['guard_end']:
             direction=p['direction'];level=p['entry_price']*(1-direction*.01)
@@ -112,12 +120,12 @@ def simulate_ladder(b,d,variant,*,end,fee=.0002,stop_slippage=0.,trace=False,ris
         if p is not None and can_fill:
             direction=p['direction'];opposite=bool(d['down'][j] if direction==1 else d['up'][j]);reason=None
             if cfg['risk']=='baseline':
-                if d['parent_event'][j] and direction*(close-q(ma[1]))<0:reason='sma50'
+                if d['parent_event'][j] and direction*(close-q(ma[1]))<0:reason='sma'+str(levels[1])
             elif now%risk_seconds==0:
                 idx=p['protected_index'];candidate=q(ma[idx]-direction*p['tolerance'])
                 p['protected_stop']=max(p['protected_stop'],candidate) if direction==1 else min(p['protected_stop'],candidate)
                 if direction*(close-q(p['protected_stop']))<0:
-                    reason=('nearest_' if cfg['risk']=='nearest' else 'support_')+'ma'+str(LEVELS[idx]);failed_index=idx
+                    reason=('nearest_' if cfg['risk']=='nearest' else 'support_')+'ma'+str(levels[idx]);failed_index=idx
                 elif cfg['risk']=='nearest':
                     eligible=np.flatnonzero(direction*(close-ma)>=p['tolerance'])
                     if len(eligible):
@@ -151,8 +159,8 @@ def simulate_ladder(b,d,variant,*,end,fee=.0002,stop_slippage=0.,trace=False,ris
         if pending is not None and can_fill and time>=pending['ready_after'] and p is None:
             direction=pending['direction'];idx=pending['index'];margin=pending['margin'];level=float(ma[idx])
             if direction*(close-q(level-direction*margin))<0:
-                counts['failed_ma'+str(LEVELS[idx])]+=1;idx+=1
-                while idx<4 and direction*(close-q(ma[idx]-direction*margin))<0:counts['failed_ma'+str(LEVELS[idx])]+=1;idx+=1
+                counts['failed_ma'+str(levels[idx])]+=1;idx+=1
+                while idx<4 and direction*(close-q(ma[idx]-direction*margin))<0:counts['failed_ma'+str(levels[idx])]+=1;idx+=1
                 if idx>=4:counts['wait_cancel_200_failed']+=1;pending=None
                 else:pending['index']=idx;pending['ready_after']=now
             else:

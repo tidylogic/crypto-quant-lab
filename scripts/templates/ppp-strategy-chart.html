@@ -56,10 +56,11 @@ const config=JSON.parse(document.getElementById('configuration').textContent),L=
 const root=document.getElementById('research'),el=id=>document.getElementById(id),has=(b,n)=>(b&n)!==0;
 const fmt=new Intl.DateTimeFormat('sv-SE',{timeZone:'Asia/Seoul',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false});
 const kst=t=>fmt.format(new Date(t*1000)),num=(v,d=2)=>v===null||v===undefined?'—':v.toLocaleString('ko-KR',{minimumFractionDigits:d,maximumFractionDigits:d}),price=v=>num(v,6),money=v=>v>0&&v<.01?v.toPrecision(3):num(v);
+const maPeriods=config.ma_periods||[20,50,100,200];
 const profileNames={R0:'반대 교차만',R1:'SMA20 종가 이탈',R2:'SMA50 종가 이탈',R3:'진입 봉 고·저점 종가 이탈',R4:'신호 ATR × 1.5 종가 손절',R5:'SMA50 또는 진입 봉 이탈',R6:'R5 + 수수료 반영 본전 청산'};
 Object.assign(profileNames,config.profile_labels||{});
 const reasons={opposite_cross:'반대 지표 교차',sma20:'SMA20 종가 이탈',sma50:'SMA50 종가 이탈',entry_candle:'진입 봉 고·저점 종가 이탈',atr_1_5:'고정 ATR × 1.5 종가 손절',break_even:'본전 기준 종가 이탈',S2:'진입 봉 내 1% 가격 손절'};
-for(const n of [20,50,100,200]){reasons['nearest_ma'+n]='최근접 SMA'+n+' 보호 실패';reasons['support_ma'+n]='진입 근거 SMA'+n+' 보호 실패';}
+for(const n of maPeriods){reasons['sma'+n]='SMA'+n+' 종가 이탈';reasons['nearest_ma'+n]='최근접 SMA'+n+' 보호 실패';reasons['support_ma'+n]='진입 근거 SMA'+n+' 보호 실패';}
 const themeColors=()=>{const s=getComputedStyle(document.documentElement);const probe=document.createElement('span');root.append(probe);const get=n=>{probe.style.color=s.getPropertyValue(n);return getComputedStyle(probe).color;};const colors={bg:get('--bg'),fg:get('--fg'),muted:get('--muted'),grid:get('--grid'),up:get('--up'),down:get('--down'),s:[1,2,3,4,5,6].map(n=>get('--s'+n))};probe.remove();return colors;};
 let colors=themeColors(),chart=null,current=null,profile=null,col=null,state=null,cash=null,positions=null,tradeIndexes=null;
 let priceSeries,mas,main,signal,flow,volume,macdMain,macdSignal,histogram,atrSeries,equity,markerApi,markers=[],rawMarkers=[],tradeLine=null,riskLines=[],range=null,lastWidth=0,selectedTime=null;
@@ -104,11 +105,11 @@ function makeChart(){
  priceSeries=chart.addSeries(L.CandlestickSeries,{upColor:colors.up,downColor:colors.down,wickUpColor:colors.up,wickDownColor:colors.down,borderVisible:false,priceFormat:{type:'price',precision:6,minMove:.000001}});
  const line=(column,options,pane=0)=>{const series=chart.addSeries(L.LineSeries,{lastValueVisible:false,priceLineVisible:false,crosshairMarkerVisible:false,...options},pane);series.setData(current.rows.map((r,i)=>({time:at(i),value:r[col[column]]})));return series;};
  priceSeries.setData(current.rows.map((r,i)=>({time:at(i),open:r[0],high:r[1],low:r[2],close:r[3]})));
- mas=[20,50,100,200].map((n,i)=>line('sma'+n,{color:colors.s[i],lineWidth:1}));
+ mas=maPeriods.map((n,i)=>line('sma'+n,{color:colors.s[i],lineWidth:1}));
  if(profile.show_protection){const protection=chart.addSeries(L.LineSeries,{color:colors.down,lineStyle:L.LineStyle.Dashed,lineWidth:1,lastValueVisible:false,priceLineVisible:false,title:'이평선 보호가'});protection.setData(profile.protected_stop.map((v,i)=>v>0?{time:at(i),value:v}:{time:at(i)}));}
  main=line('main',{color:colors.s[4],lineWidth:2,title:'이중 Stochastic 본선',lastValueVisible:true,autoscaleInfoProvider:()=>({priceRange:{minValue:0,maxValue:100}})},1);
  signal=line('signal',{color:colors.s[5],lineWidth:1,title:'시그널',lastValueVisible:true},1);
- let pane=2;const paneNames=['가격(USDT)·SMA20/50/100/200','이중 Stochastic 본선·시그널 (0–100)'];flow=volume=macdMain=macdSignal=histogram=atrSeries=null;
+ let pane=2;const paneNames=['가격(USDT)·SMA'+maPeriods.join('/'),'이중 Stochastic 본선·시그널 (0–100)'];flow=volume=macdMain=macdSignal=histogram=atrSeries=null;
  if(config.model==='E'){
   const pf={type:'price',precision:6,minMove:.000001};macdMain=line('macd',{color:colors.s[0],lineWidth:1,title:'MACD',lastValueVisible:true,priceFormat:pf},pane);macdSignal=line('macd_signal',{color:colors.s[3],lineWidth:1,title:'MACD 시그널',lastValueVisible:true,priceFormat:pf},pane);
   histogram=chart.addSeries(L.HistogramSeries,{title:'MACD 히스토그램',priceLineVisible:false,priceFormat:pf},pane);histogram.setData(current.rows.map((r,i)=>({time:at(i),value:r[col.hist],color:r[col.hist]>0?colors.up:colors.down})));pane++;paneNames.push('MACD12/26/9·히스토그램');
@@ -120,7 +121,7 @@ function makeChart(){
  if(profile.show_atr||['R4','R6'].includes(profile.risk_profile||profile.profile)){atrSeries=line('atr',{color:colors.s[1],lineWidth:1,title:'ATR14',lastValueVisible:true,priceFormat:{type:'price',precision:6,minMove:.000001}},pane++);paneNames.push('ATR14 (USDT·리스크 기준)');}
  equity=chart.addSeries(L.LineSeries,{color:colors.s[0],lineWidth:2,lineType:L.LineType.WithSteps,title:'폐쇄 계좌지수',priceLineVisible:false},pane);const equityPoints=Array.from(cash,(v,i)=>({time:at(i),value:v/config.initial*100}));if(profile.terminal_cash)equityPoints.push({time:profile.terminal_cash.time,value:profile.terminal_cash.cash/config.initial*100});equity.setData(equityPoints);paneNames.push('폐쇄 계좌지수 (초기=100)');
  chart.panes().forEach((p,i)=>p.setStretchFactor(i===0?350:130));el('panes').textContent='위부터 '+paneNames.join(' / ');
- el('legend').replaceChildren(...[20,50,100,200].map((n,i)=>{const s=document.createElement('span');s.style.color=colors.s[i];s.textContent='━ SMA'+n;return s;}));
+ el('legend').replaceChildren(...maPeriods.map((n,i)=>{const s=document.createElement('span');s.style.color=colors.s[i];s.textContent='━ SMA'+n;return s;}));
  markers=[];rawMarkers=[];profile.trades.forEach(t=>{markers.push({id:'entry-'+t.n,time:t.entry,position:t.side==='long'?'belowBar':'aboveBar',color:t.capital_executed?colors.s[0]:colors.muted,shape:t.side==='long'?'arrowUp':'arrowDown',text:'#'+t.n+' '+(t.side==='long'?'롱':'숏')});markers.push({id:'exit-'+t.n,time:t.exit,position:t.side==='long'?'aboveBar':'belowBar',color:t.net_pct>0?colors.up:colors.down,shape:'circle',text:'#'+t.n+' '+num(t.net_pct)+'%'});});
  if(profile.open_position){const o=profile.open_position;markers.push({id:'open',time:o.entry_time,position:o.side==='long'?'belowBar':'aboveBar',color:colors.s[0],shape:o.side==='long'?'arrowUp':'arrowDown',text:'미청산 '+(o.side==='long'?'롱':'숏')});}
  current.rows.forEach((r,i)=>{const bits=state[i],direction=has(bits,1)?1:has(bits,2)?-1:0;if(direction&&!has(bits,3072))rawMarkers.push({id:'signal-'+at(i),time:at(i),position:direction===1?'belowBar':'aboveBar',color:colors.s[4],shape:'square',text:config.native_execution?'원 지표 교차':'미진입 교차'});});
@@ -132,9 +133,9 @@ function makeChart(){
 function verdict(i){
  const r=current.rows[i],bits=state[i],cross=has(bits,1)?1:has(bits,2)?-1:0,side=profile.entry_mode==='ladder'?(has(bits,131072)?1:has(bits,262144)?-1:cross||(r[col.main]>=r[col.signal]?1:-1)):cross||(r[col.main]>=r[col.signal]?1:-1),word=side===1?'롱':'숏';
  const alignment=has(bits,side===1?4:8),allowed=has(bits,128),entered=has(bits,1024)?1:has(bits,2048)?-1:0;
- const checks=[['새 지표 '+(side===1?'상향':'하향')+' 교차','본선 '+num(r[col.main])+' / 시그널 '+num(r[col.signal]),Boolean(cross)],['SMA '+(side===1?'정배열':'역배열'),[r[col.sma20],r[col.sma50],r[col.sma100],r[col.sma200]].map(price).join(' / '),alignment]];
+ const checks=[['새 지표 '+(side===1?'상향':'하향')+' 교차','본선 '+num(r[col.main])+' / 시그널 '+num(r[col.signal]),Boolean(cross)],['SMA '+(side===1?'정배열':'역배열'),maPeriods.map(n=>r[col['sma'+n]]).map(price).join(' / '),alignment]];
  const blocked=[];if(profile.entry_mode==='ladder'){
-  const active=has(bits,side===1?131072:262144),stage=profile.support_index[i],label=stage>=0?'SMA'+[20,50,100,200][stage]:'선택 선 없음',margin=profile.margin[i],level=stage>=0?r[col['sma'+[20,50,100,200][stage]]]:null,src=profile.source_time[i];
+  const active=has(bits,side===1?131072:262144),stage=profile.support_index[i],label=stage>=0?'SMA'+maPeriods[stage]:'선택 선 없음',margin=profile.margin[i],level=stage>=0?r[col['sma'+maPeriods[stage]]]:null,src=profile.source_time[i];
   checks.splice(0,1,['유효한 '+current.timeframe_minutes+'분 지표 신호',src?kst(src+current.signal_step)+' 확정':'신호 대기 없음',active]);
   const sourceIndex=src?idx(src+current.signal_step-current.step):i,sourceRow=current.rows[sourceIndex]||r,sourceBits=sourceRow[col.bits],mf=has(sourceBits,side===1?16:32),rv=has(sourceBits,64);
   checks.push(['원 신호 MFI14 '+(side===1?'>50':'<50'),num(sourceRow[col.mfi]),mf],['원 신호 상대 거래량 ≥1.2배',num(sourceRow[col.rvol])+'배',rv]);if(!mf)blocked.push('원 신호 MFI');if(!rv)blocked.push('원 신호 상대 거래량');
@@ -159,7 +160,7 @@ function focusTrade(j){if(!ready)return;clearTrade();if(j==='all'){el('trade').v
  setRange({from:Math.max(current.start,t.entry-3600),to:Math.min(current.end-current.step,t.exit+3600)});inspect(t.signal_time);
  el('trade-detail').textContent='#'+t.n+' '+(t.side==='long'?'롱':'숏')+' · '+kst(t.entry)+' → '+kst(t.exit)+(t.exit_timing==='intrabar'?' 봉 내(정확한 시각 불명)':'')+' · '+price(t.ep)+' → '+price(t.xp)+' USDT · 순수익률 '+num(t.net_pct)+'% · 계좌 수익률 '+num(t.account_pct)+'% · '+(reasons[t.reason]||t.reason)+(t.capital_executed?'':' · 자금 소진 후 전략 거래(계좌 미집행)');
  const d=t.side==='long'?1:-1,levels=[];if(profile.policy==='S2')levels.push([t.ep*(1-d*.01),'첫 봉만 1% 손절']);if((profile.risk_profile||profile.profile)==='R4')levels.push([t.ep-d*1.5*t.entry_atr,'고정 1.5 ATR']);
- if(t.entry_support_index!==undefined&&profile.show_protection){const row=current.rows[idx(t.signal_time)],level=row[col['sma'+[20,50,100,200][t.entry_support_index]]];levels.push([level-d*t.tolerance,'진입 시 이평선 보호가']);}
+ if(t.entry_support_index!==undefined&&profile.show_protection){const row=current.rows[idx(t.signal_time)],level=row[col['sma'+maPeriods[t.entry_support_index]]];levels.push([level-d*t.tolerance,'진입 시 이평선 보호가']);}
  if(['R3','R5','R6'].includes(profile.profile)){const row=current.rows[idx(t.entry)];levels.push([d===1?row[2]:row[1],'진입 봉 범위']);}
  levels.forEach(([p,title])=>riskLines.push(priceSeries.createPriceLine({price:p,color:colors.down,lineWidth:1,lineStyle:L.LineStyle.Dashed,title,axisLabelVisible:true})));
 }

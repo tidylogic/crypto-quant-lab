@@ -239,7 +239,9 @@ def export_reports(args, results, exports, packs):
         markets = exports[model]
         default_market = getattr(args,'default_market',None) or next((c['key'] for c in markets if c['venue']=='mexc' and c['timeframe_minutes']==5),markets[0]['key'])
         preferred = getattr(args, 'default_profile', None) or DEFAULT_PROFILE[model]
-        configuration = dict(asset=args.asset,model=model,model_name=catalog[model]['name'],strategy_status=catalog[model]['status'],model_rule=MODEL_RULES[model],initial=args.initial,leverage=args.leverage,fee=args.fee,
+        display_name=getattr(args,'model_name',None) or catalog[model]['name']
+        configuration = dict(asset=args.asset,model=model,model_name=display_name,strategy_status=catalog[model]['status'],model_rule=MODEL_RULES[model],initial=args.initial,leverage=args.leverage,fee=args.fee,
+                             ma_periods=getattr(args,'ma_periods',(20,50,100,200)),
                              markets=markets,default_market=default_market,default_profile=preferred if preferred in args.profiles else args.profiles[0],
                              summaries=[r for r in results['summaries'] if r['model']==model],
                              profile_labels=getattr(args, 'profile_labels', {}),
@@ -250,7 +252,7 @@ def export_reports(args, results, exports, packs):
                              fill_note=getattr(args, 'fill_note', None),
                              slippage_note=getattr(args, 'slippage_note', None))
         blocks = '\n'.join(f'<script type="application/octet-stream" id="data-{key}">{value}</script>' for key,value in packs[model].items())
-        title = f'{args.asset} · {catalog[model]["name"]}'+(' · 초안' if catalog[model]['status']=='draft' else '')
+        title = f'{args.asset} · {display_name}'+(' · 초안' if catalog[model]['status']=='draft' else '')
         document = template.replace('@@TITLE@@',escape(title)).replace('@@CONFIG@@',json.dumps(configuration,ensure_ascii=False).replace('<','\\u003c')).replace('@@PAYLOADS@@',blocks).replace('@@VENDOR@@',vendor).replace('@@LICENSE@@',license_text)
         filename = f'{args.asset.lower()}-{model.lower()}-strategy.html'
         path = args.output/filename

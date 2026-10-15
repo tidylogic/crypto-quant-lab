@@ -18,7 +18,8 @@ from ppp_research_portal import build_research
 ROOT = Path(__file__).resolve().parents[1]
 CONFIG = re.compile(r'(<script id="configuration" type="application/json">)(.*?)(</script>)', re.S)
 ASSETS = ['BTC', 'ETH', 'BNB', 'SOL', 'XRP', 'WLD', 'ZEC']
-GROUPS = {'ppp-support': '지지·저항 확인 / 손절 주기 비교',
+GROUPS = {'ppp-sma-entry': 'SMA30·60·120·240 / 두 진입 방식 비교',
+          'ppp-support': '지지·저항 확인 / 손절 주기 비교',
           'ppp-largecap': '진입 시점 개선 연구',
           'ppp-wld-s2': 'WLD · 최고 수익 기준형 비교',
           'ppp-wld': 'WLD · 초기 전략 비교'}

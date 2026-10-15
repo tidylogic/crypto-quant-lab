@@ -42,3 +42,12 @@ The current host uses an enabled user service `ppp-chart-gallery.service`. The u
 4. Port the finally accepted support/reentry implementation into Pine only after defining its source/1-minute availability and execution differences. Preserve all draft sources.
 
 Use `ppp-strategy-research` for research and `ppp-chart-review` for chart/server work. Update this handoff and the human findings when hypotheses, source periods or active choices change.
+
+
+## G SMA entry comparison — 2026-10-15
+
+Read `docs/strategy-notes/ppp-sma-entry-comparison.md`. User selected direct source-close entry vs post-signal 1m support/recovery entry. Both modes share source-close second-MA failure or raw opposite-cross exits, plus entry-source-candle S2. This is G with MFI/RVOL, separate from screenshot reconstruction. Compare20/50/100/200 control with30/60/120/240; retain active baseline.
+
+Completed288 cases across7 assets,36native venue/timeframe cases,2sets/2modes/2costs;75,956 position records;72/72 legacy B0 matches and19 data hashes. Independent review recomputed all288 individual metrics and64 pooled aggregates from the ledger. New30-set all7 nominal:1m direct/confirmed PF0.590/0.413;3m0.762/1.230;5m0.936/0.611;15m0.855/0.882.3m confirmed excluding ZEC PF0.777. Higher-cap5 confirmed15m has only46trades,WR32.61%,payoff3.23,PF1.565/stress1.385; not a broad promotion.
+
+Scripts `ppp_sma_entry_comparison.py` and `ppp_sma_entry_report.py`; ignored output `user_data/backtest_results/ppp-sma-entry-2026-10-15`, preserved first run before open-position journal-label fix under `ppp-sma-entry-before-label-fix-2026-10-15`. Numerical results unchanged by that fix. Charts support configurable MA periods, two separate pages per asset/set, all1/3/5/15m and short MEXC5/15m; native signals and fills remain same venue. Regenerate gallery/portal to expose the new comparison, figures and aggregate CSV. Pine baseline stays unchanged; this is Python/HTML research. Do not rerun completed grids merely because a session restarts.
